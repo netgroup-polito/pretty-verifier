@@ -50,4 +50,18 @@ def handle_error(output_raw, c_source_file):
         gpl_delcaration_missing()
         return
 
+    r0_not_ok_pattern = re.compile(r"R0 !read_ok")
+    if r0_not_ok_pattern.match(error):
+        r0_not_ok()
+        return
+    
+    invaalid_mem_access_pattern = re.search(r"R(\d+) invalid mem access '(.*?)'", error)
+    if invaalid_mem_access_pattern:
+        invalid_mem_access(
+            output = output,
+            reg = invaalid_mem_access_pattern.group(1),
+            type = invaalid_mem_access_pattern.group(2)
+        )
+        return
+
     not_found(error)

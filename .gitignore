@@ -1,5 +1,5 @@
 # Ignora la cartella _pycache_ generata da Python
-_pycache/
+__pycache__/
 
 # Ignora i file temporanei
 *.swp

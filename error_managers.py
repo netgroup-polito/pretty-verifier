@@ -4,13 +4,26 @@ def not_found(error):
     print_error(f"Error not managed -> {error}")
         
 def get_type(type):
+    or_null = False
+    if type.endswith("_or_null"):
+        or_null = True
+        type = type[:-8]
+
+    ret_val = 'not managed pointer'
     match type:
         case "map_ptr":
-            return "pointer to map"
+            ret_val = "pointer to map"
+        case "map_value":
+            ret_val = "pointer to map element value"
         case "fp":
-            return "pointer to locally defined data"
+            ret_val = "pointer to locally defined data"
         case "pkt_end":
-            return "pointer to end of XDP packet"
+            ret_val = "pointer to end of XDP packet"
+
+    if or_null:
+        ret_val += ' not null-checked'
+    
+    return ret_val
         
 def type_mismatch(output, reg, type, expected):
     for s in reversed(output):
@@ -49,3 +62,11 @@ def unreleased_reference(output, id, alloc_insn):
             print_error("Reference must be released before exiting", s)
             return
 
+def r0_not_ok():
+    print_error("Function must not have empty body")
+
+def invalid_mem_access(output, reg, type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot access to possible nullable {get_type(type)}", location=s)
+            return 
