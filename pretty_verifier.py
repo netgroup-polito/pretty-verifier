@@ -11,7 +11,7 @@ def process_input(c_source_file):
         line = line.strip()
         print(line)
         verifier_log.append(line)
-        if not processsing and line.startswith("1: "):
+        if not processsing and line.startswith("0: "):
             processsing = True
         if processsing and line.startswith("processed"):
             handle_error(verifier_log, c_source_file)

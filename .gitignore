@@ -1,0 +1,7 @@
+# Ignora la cartella _pycache_ generata da Python
+_pycache/
+
+# Ignora i file temporanei
+*.swp
+*.~
+*.log
