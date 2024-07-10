@@ -62,8 +62,19 @@ def unreleased_reference(output, id, alloc_insn):
             print_error("Reference must be released before exiting", s)
             return
 
-def r0_not_ok():
-    print_error("Function must not have empty body")
+def reg_not_ok(output, register):
+    if register == 0:
+        print_error("Function must not have empty body")
+        return
+    
+    for s in reversed(output):
+        if s.startswith(';'):
+            if("(" in s):
+                value = s.split("(")[1][:-1].split(",")[int(register)-1]
+                appendix = f"{register}° argument ({value}) is uninitialized"
+
+            print_error("Accessing uninitialized value", s, appendix=appendix)
+            return
 
 def invalid_mem_access(output, reg, type):
     for s in reversed(output):
