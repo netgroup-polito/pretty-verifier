@@ -70,3 +70,62 @@ def invalid_mem_access(output, reg, type):
         if s.startswith(';'):
             print_error(f"Cannot access to possible nullable {get_type(type)}", location=s)
             return 
+
+# todo should add suggestion on how to turn on jit     
+def jit_required_for_kfunc(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Jit compilation required when calling this kernel function", location=s)
+            return 
+
+# todo should add suggestion on how to turn off jit
+def jit_not_supporting_kfunc(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Jit compilation not supporting when calling this kernel function", location=s)
+            return 
+
+#todo suggestion should account for other gpl-compatible programs
+def kfunc_require_gpl_program(output):
+    suggestion = "You can add\n"+\
+        f"   char LICENSE[] SEC(\"license\") = \"Dual BSD/GPL\";\n"+\
+        f"at the end of the file"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Kernel function need to be called from GPL compatible program", location=s, suggestion=suggestion)
+            return 
+
+def too_many_kernel_functions():
+    appendix = "The maximum number is 256"
+    print_error(f"Number of kernel functions exceeded", appendix=appendix)
+
+def not_bpf_capable():
+    suggestion = "Use \"sudo\" before the call.\n If this error is still presents, you may not have installed all the BPF tools. "
+    print_error(f"Not enough permissions", suggestion=suggestion)
+
+# todo should be tested if multiple funtions are used, 
+# maybe better sticking to the original output
+# check if the error of blank output seen online is caused by bcc
+def jump_out_of_range_kfunc(output, bytecode, jmp_from, jmp_to):
+    location = None
+    suggestion = "You may try using, if available, an equivalent bpf helper function\n"\
+        "   https://man7.org/linux/man-pages/man7/bpf-helpers.7.html"
+    f = False
+    for s in reversed(bytecode):
+        if s.startswith(f"{jmp_from}: "):
+            f = True
+            continue
+        if f and s.startswith(';'):
+            location = s
+
+    print_error(f"Error using kernel function", location=location, suggestion=suggestion)
+# todo not sure the output is right, gotta test
+def last_insn_not_exit_jmp(output, bytecode):
+    suggestion="If you are using bpf functions, try adding\n"+\
+        "   #include <bpf/bpf_helpers.h>\n"\
+        "at the beginning of your file"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Error using kernel function", location=s, suggestion=suggestion)
+            return 
+    

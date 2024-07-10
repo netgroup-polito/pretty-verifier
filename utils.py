@@ -1,3 +1,5 @@
+import subprocess
+
 def print_error(message, location=None, suggestion=None, appendix=None):
 
     error_message = f"\n\033[96m#######################\033"+ \
@@ -52,3 +54,12 @@ def add_line_number(output_raw, c_source_file):
         
         output.append(modified_line)
     return output
+
+def get_bytecode(bytecode_file):
+    if bytecode_file == None:
+        return []
+    
+    command = f"llvm-objdump -S {bytecode_file}"
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout.splitlines()
+    
