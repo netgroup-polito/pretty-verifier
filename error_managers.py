@@ -140,3 +140,59 @@ def last_insn_not_exit_jmp(output, bytecode):
             print_error(f"Error using kernel function", location=s, suggestion=suggestion)
             return 
     
+def invalid_accesss_to_map_key(output, key_size, offset, size):
+    if offset+size > key_size:
+        suggestion= "Add a bound check:"+\
+        "   offset + size <= key_size must be true"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to memory: MAP KEY of size {size}B and offset of {offset}B in {key_size}B of memory", location=s, suggestion=suggestion)
+            return 
+        
+def invalid_accesss_to_map_value(output, value_size, offset, size):
+    if offset+size > value_size:
+        suggestion= "Add a bound check:"+\
+        "   offset + size <= value_size must be true"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to memory: MAP VALUE of size {size}B and offset of {offset}B in {value_size}B of memory", location=s, suggestion=suggestion)
+            return 
+        
+def invalid_accesss_to_packet(output, mem_size, offset, size):
+    if offset+size > mem_size:
+        suggestion= "Add a bound check:"+\
+        "   offset + size <= mem_size must be true"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to memory: PACKET of size {size}B and offset of {offset}B in {mem_size}B of memory", location=s, suggestion=suggestion)
+            return 
+        
+def invalid_accesss_to_mem_region(output, mem_size, offset, size):
+    if offset+size > mem_size:
+        suggestion= "Add a bound check:"+\
+        "   offset + size <= mem_size must be true"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to memory: MEMORY REGION of size {size}B and offset of {offset}B in {mem_size}B of memory", location=s, suggestion=suggestion)
+            return 
+def min_value_is_negative(output):
+    suggestion = "Use unsigned index or do a if (index >=0) check"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Minimum possible value is not allowed to be negative", location=s, suggestion=suggestion)
+            return 
+# probably not testable        
+def check_ptr_off_reg(output):
+    appendix = "Access to this pointer-typed register or passing it to a helper is only allowed in its original, unmodified form."
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Pointer access not allowed", location=s, appendix=appendix)
+            return 
+        
+#def offset_outside_packet(output, reg):
+def invalid_access_to_flow_keys(output, offset, size):
+    suggestion="The offset to flow key must be positive and the maximum size is 256B"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to flow keys", location=s, suggestion=suggestion)
+            return 

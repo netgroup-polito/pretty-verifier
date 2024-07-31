@@ -107,8 +107,62 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         last_insn_not_exit_jmp(output, bytecode)
         return
     
-    
-    
+    invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(\d+) size=(\d+)", error)
+    if invalid_accesss_to_map_key_pattern:
+        invalid_accesss_to_map_key(
+            output,
+            invalid_accesss_to_map_key_pattern.group(1),
+            invalid_accesss_to_map_key_pattern.group(2),
+            invalid_accesss_to_map_key_pattern.group(3),
+        )
+        return
 
+    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, key_size=(\d+) off=(\d+) size=(\d+)", error)
+    if invalid_accesss_to_map_value_pattern:
+        invalid_accesss_to_map_value(
+            output,
+            invalid_accesss_to_map_value_pattern.group(1),
+            invalid_accesss_to_map_value_pattern.group(2),
+            invalid_accesss_to_map_value_pattern.group(3),
+        )
+        return
+    invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(\d+) size=(\d+), R(\d+)(id=(\d+),off=(\d+),r=(\d+))", error)
+    if invalid_accesss_to_packet_pattern:
+        invalid_accesss_to_packet(
+            output,
+            invalid_accesss_to_packet_pattern.group(6),
+            invalid_accesss_to_packet_pattern.group(1),
+            invalid_accesss_to_packet_pattern.group(2),
+        )
+        return
+    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, key_size=(\d+) off=(\d+) size=(\d+)", error)
+    if invalid_accesss_to_mem_region_pattern:
+        invalid_accesss_to_mem_region(
+            output,
+            invalid_accesss_to_mem_region_pattern.group(1),
+            invalid_accesss_to_mem_region_pattern.group(2),
+            invalid_accesss_to_mem_region_pattern.group(3),
+        )
+        return
+    min_value_is_negative_pattern = re.search(r"R(\d+) min value is outside of the allowed memory range", error)
+    if min_value_is_negative_pattern:
+        min_value_is_negative(
+            output
+        )
 
+    check_ptr_off_reg_pattern = re.search(r"negative offset (.*?) ptr R(\d+) off=(\d+) disallowed"+\
+                                  r"|dereference of modified (.*?) ptr R(\d+) off=(\d+) disallowed"+\
+                                    r"|variable (.*?) access var_off=(.*?) disallowed", error)
+    if check_ptr_off_reg_pattern:
+        check_ptr_off_reg(output)
+        return
+    
+    invalid_access_to_flow_keys_pattern = re.search(r"invalid access to flow keys off=(\d+) size=(\d+)")
+    if invalid_access_to_flow_keys_pattern:
+        invalid_access_to_flow_keys(
+            output, 
+            invalid_access_to_flow_keys_pattern.group(1),
+            invalid_access_to_flow_keys_pattern.group(2)              
+        )
+    
     not_found(error)
