@@ -191,7 +191,12 @@ def check_ptr_off_reg(output):
         
 #def offset_outside_packet(output, reg):
 def invalid_access_to_flow_keys(output, offset, size):
-    suggestion="The offset to flow key must be positive and the maximum size is 256B"
+    if size<0:
+        suggestion = f"Size is {size}, it must be positive"
+    if offset<0:
+        suggestion = f"Offset is {offset}, it must be positive"
+    if offset+size>256:
+        suggestion="The sum of offset and size must not exceed 256B"
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Invalid access to flow keys", location=s, suggestion=suggestion)
