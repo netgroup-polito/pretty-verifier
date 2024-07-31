@@ -107,14 +107,14 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         last_insn_not_exit_jmp(output, bytecode)
         return
     
-    min_value_is_negative_pattern = re.search(r"R(\d+) min value is outside of the allowed memory range", error)
-    if min_value_is_negative_pattern:
+    min_value_is_outside_mem_range_pattern = re.search(r"R(\d+) min value is outside of the allowed memory range", error)
+    if min_value_is_outside_mem_range_pattern:
         min_value_is_outside_mem_range(
             output
         )
     
-    max_value_is_negative_pattern = re.search(r"R(\d+) max value is outside of the allowed memory range", error)
-    if max_value_is_negative_pattern:
+    max_value_is_outside_mem_range_pattern = re.search(r"R(\d+) max value is outside of the allowed memory range", error)
+    if max_value_is_outside_mem_range_pattern:
         max_value_is_outside_mem_range(
             output
         )
@@ -125,6 +125,9 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             output
         )
     
+    min_value_is_negative_pattern = re.search(r"R(\d+) min value is negative, either use unsigned index or do a if (index >=0) check.", error)
+    if min_value_is_negative_pattern:
+        min_value_is_negative(output)
 
     check_ptr_off_reg_pattern = re.search(r"negative offset (.*?) ptr R(\d+) off=(\d+) disallowed"+\
                                   r"|dereference of modified (.*?) ptr R(\d+) off=(\d+) disallowed"+\
