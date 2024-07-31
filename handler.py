@@ -107,48 +107,24 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         last_insn_not_exit_jmp(output, bytecode)
         return
     
-    invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(\d+) size=(\d+)", error)
-    if invalid_accesss_to_map_key_pattern:
-        invalid_accesss_to_map_key(
-            output,
-            invalid_accesss_to_map_key_pattern.group(1),
-            invalid_accesss_to_map_key_pattern.group(2),
-            invalid_accesss_to_map_key_pattern.group(3),
-        )
-        return
-
-    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, key_size=(\d+) off=(\d+) size=(\d+)", error)
-    if invalid_accesss_to_map_value_pattern:
-        invalid_accesss_to_map_value(
-            output,
-            invalid_accesss_to_map_value_pattern.group(1),
-            invalid_accesss_to_map_value_pattern.group(2),
-            invalid_accesss_to_map_value_pattern.group(3),
-        )
-        return
-    invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(\d+) size=(\d+), R(\d+)(id=(\d+),off=(\d+),r=(\d+))", error)
-    if invalid_accesss_to_packet_pattern:
-        invalid_accesss_to_packet(
-            output,
-            invalid_accesss_to_packet_pattern.group(6),
-            invalid_accesss_to_packet_pattern.group(1),
-            invalid_accesss_to_packet_pattern.group(2),
-        )
-        return
-    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, key_size=(\d+) off=(\d+) size=(\d+)", error)
-    if invalid_accesss_to_mem_region_pattern:
-        invalid_accesss_to_mem_region(
-            output,
-            invalid_accesss_to_mem_region_pattern.group(1),
-            invalid_accesss_to_mem_region_pattern.group(2),
-            invalid_accesss_to_mem_region_pattern.group(3),
-        )
-        return
     min_value_is_negative_pattern = re.search(r"R(\d+) min value is outside of the allowed memory range", error)
     if min_value_is_negative_pattern:
-        min_value_is_negative(
+        min_value_is_outside_mem_range(
             output
         )
+    
+    max_value_is_negative_pattern = re.search(r"R(\d+) max value is outside of the allowed memory range", error)
+    if max_value_is_negative_pattern:
+        max_value_is_outside_mem_range(
+            output
+        )
+    
+    offset_outside_packet_pattern = re.search(r"R(\d+) offset is outside of the packet", error)
+    if offset_outside_packet_pattern:
+        offset_outside_packet(
+            output
+        )
+    
 
     check_ptr_off_reg_pattern = re.search(r"negative offset (.*?) ptr R(\d+) off=(\d+) disallowed"+\
                                   r"|dereference of modified (.*?) ptr R(\d+) off=(\d+) disallowed"+\

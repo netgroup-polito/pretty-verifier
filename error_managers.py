@@ -1,4 +1,5 @@
 from utils import print_error
+import re
 
 def not_found(error):
     print_error(f"Error not managed -> {error}")
@@ -175,13 +176,70 @@ def invalid_accesss_to_mem_region(output, mem_size, offset, size):
         if s.startswith(';'):
             print_error(f"Invalid access to memory: MEMORY REGION of size {size}B and offset of {offset}B in {mem_size}B of memory", location=s, suggestion=suggestion)
             return 
+        
+def __check_mem_access_check(output, line):
+    invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(\d+) size=(\d+)", line)
+    if invalid_accesss_to_map_key_pattern:
+        invalid_accesss_to_map_key(
+            output,
+            invalid_accesss_to_map_key_pattern.group(1),
+            invalid_accesss_to_map_key_pattern.group(2),
+            invalid_accesss_to_map_key_pattern.group(3),
+        )
+        return
+
+    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, key_size=(\d+) off=(\d+) size=(\d+)", line)
+    if invalid_accesss_to_map_value_pattern:
+        invalid_accesss_to_map_value(
+            output,
+            invalid_accesss_to_map_value_pattern.group(1),
+            invalid_accesss_to_map_value_pattern.group(2),
+            invalid_accesss_to_map_value_pattern.group(3),
+        )
+        return
+    invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(\d+) size=(\d+), R(\d+)(id=(\d+),off=(\d+),r=(\d+))", line)
+    if invalid_accesss_to_packet_pattern:
+        invalid_accesss_to_packet(
+            output,
+            invalid_accesss_to_packet_pattern.group(6),
+            invalid_accesss_to_packet_pattern.group(1),
+            invalid_accesss_to_packet_pattern.group(2),
+        )
+        return
+    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, key_size=(\d+) off=(\d+) size=(\d+)", line)
+    if invalid_accesss_to_mem_region_pattern:
+        invalid_accesss_to_mem_region(
+            output,
+            invalid_accesss_to_mem_region_pattern.group(1),
+            invalid_accesss_to_mem_region_pattern.group(2),
+            invalid_accesss_to_mem_region_pattern.group(3),
+        )
+        return
+def min_value_is_outside_mem_range(output):
+    line = output.pop()
+    __check_mem_access_check(output, line)
+def max_value_is_outside_mem_range(output):
+    line = output.pop()
+    __check_mem_access_check(output, line)
+def offset_outside_packet(output):
+    line = output.pop()
+    __check_mem_access_check(output, line)
+# probably not testable        
+
 def min_value_is_negative(output):
     suggestion = "Use unsigned index or do a if (index >=0) check"
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Minimum possible value is not allowed to be negative", location=s, suggestion=suggestion)
             return 
-# probably not testable        
+
+def unbounded_mem_access(output):
+    suggestion = "You need to add a bound check to the accessed memory"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Unbounded memory access", location=s, suggestion=suggestion)
+            return 
+
 def check_ptr_off_reg(output):
     appendix = "Access to this pointer-typed register or passing it to a helper is only allowed in its original, unmodified form."
     for s in reversed(output):
@@ -189,7 +247,6 @@ def check_ptr_off_reg(output):
             print_error(f"Pointer access not allowed", location=s, appendix=appendix)
             return 
         
-#def offset_outside_packet(output, reg):
 def invalid_access_to_flow_keys(output, offset, size):
     if size<0:
         suggestion = f"Size is {size}, it must be positive"
