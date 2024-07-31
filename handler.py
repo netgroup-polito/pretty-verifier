@@ -190,4 +190,36 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             combined_stack_size_exceeded_pattern.group(2)
         )
         return
+    
+    invalid_buffer_access_pattern = re.search(r"R(\d+) invalid (.*?) buffer access: off=(\d+), size=(\d+)", error)
+    if invalid_buffer_access_pattern:
+        invalid_buffer_access(
+            output, 
+            invalid_buffer_access_pattern.group(2)
+        )    
+    '''
+    invalid_variable_buffer_offset_pattern = re.search(r"R(\d+) invalid (.*?) buffer access: off=(\d+), size=(\d+)", error)
+    if invalid_variable_buffer_offset_pattern:
+        invalid_variable_buffer_offset(
+            output,
+
+        )    
+    '''
+
+    map_invalid_negative_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
+    if map_invalid_negative_access_pattern:
+        map_invalid_negative_access(
+            output,
+            map_invalid_negative_access_pattern.group(2),
+            map_invalid_negative_access_pattern.group(3),
+        )
+
+    map_only_read_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
+    if map_only_read_access_pattern:
+        map_only_read_access(
+            output,
+            map_only_read_access_pattern.group(2),
+        )
+
+
     not_found(error)

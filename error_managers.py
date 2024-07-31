@@ -277,3 +277,22 @@ def tail_calls_not_allowed_if_frame_size_exceeded(size):
 def combined_stack_size_exceeded(frames, size):
     print_error(f"Combined stack size of {frames} subprograms is {size}, maximum is 512")
 
+def invalid_buffer_access(output, offset):
+    appendix = f"Offset is {offset}, but is should be negative"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to buffer", location=s, appendix=appendix)
+            return 
+
+def map_invalid_negative_access(output, tname, offset):
+    appendix = "Offset should not be negative"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Access to {tname} with offset {offset} not allowed", location=s, appendix=appendix)
+            return 
+        
+def map_only_read_access(output, tname):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Only read from {tname} is supported", location=s)
+            return 
