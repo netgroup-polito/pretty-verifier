@@ -136,12 +136,58 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         check_ptr_off_reg(output)
         return
     
-    invalid_access_to_flow_keys_pattern = re.search(r"invalid access to flow keys off=(\d+) size=(\d+)")
+    invalid_access_to_flow_keys_pattern = re.search(r"invalid access to flow keys off=(\d+) size=(\d+)", error)
     if invalid_access_to_flow_keys_pattern:
         invalid_access_to_flow_keys(
             output, 
             invalid_access_to_flow_keys_pattern.group(1),
             invalid_access_to_flow_keys_pattern.group(2)              
         )
+        return
+
+    invalid_network_packet_access_pattern = re.search(r"R(\d+) invalid (.*?) access off=(\d+) size=(\d+)", error)
+    if invalid_network_packet_access_pattern:
+        invalid_network_packet_access(
+            output,
+            invalid_network_packet_access_pattern.group(1),
+            invalid_network_packet_access_pattern.group(2),
+            invalid_network_packet_access_pattern.group(3),
+            invalid_network_packet_access_pattern.group(4),
+        )
+        return
+
+    misaligned_packet_access_pattern = re.search(r"misaligned packet access off (\d+)+(.*?)+(\d+)+(\d+) size (\d+)", error)
+    if misaligned_packet_access_pattern:
+        misaligned_access(
+            output, "packet"
+        )
+        return
     
+    misaligned_access_pattern = re.search(r"misaligned (.*?) access off (.*?)+(\d+)+(\d+) size (\d+)", error)
+    if misaligned_access_pattern:
+        misaligned_access(
+            output, 
+            misaligned_access_pattern.group(1)
+        )
+        return
+
+    stack_frames_exceeded_pattern = re.search(r"the call stack of (\d+) frames is too deep !", error)
+    if stack_frames_exceeded_pattern:
+        stack_frames_exceeded(
+            stack_frames_exceeded_pattern.group(1)
+        )
+        return
+    tail_calls_not_allowed_if_frame_size_exceeded_pattern = re.search(r"tail_calls are not allowed when call stack of previous frames is (\d+) bytes. Too large", error)
+    if tail_calls_not_allowed_if_frame_size_exceeded_pattern:
+        tail_calls_not_allowed_if_frame_size_exceeded(
+            tail_calls_not_allowed_if_frame_size_exceeded_pattern.group(1)
+        )
+        return
+    combined_stack_size_exceeded_pattern = re.search(r"combined stack size of (\d+) calls is (\d+). Too large", error)
+    if combined_stack_size_exceeded_pattern:
+        combined_stack_size_exceeded(
+            combined_stack_size_exceeded_pattern.group(1),
+            combined_stack_size_exceeded_pattern.group(2)
+        )
+        return
     not_found(error)

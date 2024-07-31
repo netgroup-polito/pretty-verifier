@@ -258,3 +258,22 @@ def invalid_access_to_flow_keys(output, offset, size):
         if s.startswith(';'):
             print_error(f"Invalid access to flow keys", location=s, suggestion=suggestion)
             return 
+def invalid_network_packet_access(output, reg, type, offset, size):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to {get_type(type)}", location=s)
+            return 
+def misaligned_access(output, type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Misaligned access to {type}", location=s)
+            return 
+def stack_frames_exceeded(stack_frames):
+    print_error(f"Program has {stack_frames} tail calls, maximum is 8")
+
+def tail_calls_not_allowed_if_frame_size_exceeded(size):
+    print_error(f"Stack size of previous subprogram is {size}, maximum is 256")
+
+def combined_stack_size_exceeded(frames, size):
+    print_error(f"Combined stack size of {frames} subprograms is {size}, maximum is 512")
+
