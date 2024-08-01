@@ -197,6 +197,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             output, 
             invalid_buffer_access_pattern.group(2)
         )    
+        return
     '''
     invalid_variable_buffer_offset_pattern = re.search(r"R(\d+) invalid (.*?) buffer access: off=(\d+), size=(\d+)", error)
     if invalid_variable_buffer_offset_pattern:
@@ -212,14 +213,77 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             output,
             map_invalid_negative_access_pattern.group(2),
             map_invalid_negative_access_pattern.group(3),
-        )
+        )    
+        return
 
     map_only_read_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
     if map_only_read_access_pattern:
         map_only_read_access(
             output,
             map_only_read_access_pattern.group(2),
-        )
+        )    
+        return
 
+    invalid_unbounded_valiable_offset_pattern = re.search(r"invalid unbounded variable-offset (.*?) stack R(\d+)", error)
+    if invalid_unbounded_valiable_offset_pattern:
+        invalid_unbounded_valiable_offset(
+            output,
+            invalid_unbounded_valiable_offset_pattern.group(1)
+        )    
+        return
+
+    write_to_change_key_not_allowed_pattern = re.search(r"write to change key R(\d+) not allowed", error)
+    if write_to_change_key_not_allowed_pattern:
+        write_to_change_key_not_allowed(output)    
+        return
+
+    rd_leaks_addr_into_map_pattern = re.search(r"R(\d+) leaks addr into map", error)
+    if rd_leaks_addr_into_map_pattern:
+        rd_leaks_addr_into_map(output)    
+        return
+
+    invalid_mem_access_null_ptr_to_mem_pattern = re.search(r"R(\d+) invalid mem access '(.*?)'", error)
+    if invalid_mem_access_null_ptr_to_mem_pattern:
+        invalid_mem_access_null_ptr_to_mem(
+            output,
+            invalid_mem_access_null_ptr_to_mem_pattern.group(2),
+        )    
+        return
+
+    cannot_write_into_type_pattern = re.search(r"R(\d+) cannot write into (.*?)", error)
+    if cannot_write_into_type_pattern:
+        cannot_write_into_type(
+            output,
+            cannot_write_into_type_pattern.group(2),
+        )    
+        return
+
+    rd_leaks_addr_into_mem_pattern = re.search(r"R(\d+) leaks addr into mem", error)
+    if rd_leaks_addr_into_mem_pattern:
+        rd_leaks_addr_into_mem(output)    
+        return
+
+    rd_leaks_addr_into_ctx_pattern = re.search(r"R(\d+) leaks addr into ctx", error)
+    if rd_leaks_addr_into_ctx_pattern:
+        rd_leaks_addr_into_ctx(output)    
+        return
+
+    cannot_write_into_packet_pattern = re.search(r"cannot write into packet", error)
+    if cannot_write_into_packet_pattern:
+        cannot_write_into_packet(
+            output
+        )    
+        return
+
+    rd_leaks_addr_into_packet_pattern = re.search(r"R(\d+) leaks addr into packet", error)
+    if rd_leaks_addr_into_packet_pattern:
+        rd_leaks_addr_into_packet(output)    
+        return
+
+    rd_leaks_addr_into_flow_keys_pattern = re.search(r"R(\d+) leaks addr into flow keys", error)
+    if rd_leaks_addr_into_flow_keys_pattern:
+        rd_leaks_addr_into_flow_keys(output)    
+        return
+        
 
     not_found(error)

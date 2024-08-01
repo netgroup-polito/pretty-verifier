@@ -10,6 +10,11 @@ def get_type(type):
         or_null = True
         type = type[:-8]
 
+    rdonly = False
+    if type.endswith("rdonly_"):
+        rdonly = True
+        type = type[7:]
+
     ret_val = 'not managed pointer'
     match type:
         case "map_ptr":
@@ -23,6 +28,8 @@ def get_type(type):
 
     if or_null:
         ret_val += ' not null-checked'
+    if rdonly:
+        ret_val = f"read only {ret_val}"
     
     return ret_val
         
@@ -295,4 +302,68 @@ def map_only_read_access(output, tname):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Only read from {tname} is supported", location=s)
+            return 
+
+# maybe it's a CE
+def invalid_unbounded_valiable_offset(output, op):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid unbounded {op} to stack", location=s)
+            return 
+        
+def write_to_change_key_not_allowed(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot write into a pointer to map key", location=s)
+            return 
+        
+def rd_leaks_addr_into_map(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot memorize a pointer into a map value", location=s)
+            return 
+        
+def invalid_mem_access_null_ptr_to_mem(output, type):
+    type_string = get_type(type)
+    if type_string.startswith("read only "):
+        suggestion = "Add a null check to reference before accessing it"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot write into {get_type(type)}", location=s, suggestion=suggestion)
+            return 
+        
+def cannot_write_into_type(output, type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot write into {get_type(type)}", location=s)
+            return
+        
+def rd_leaks_addr_into_mem(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot memorize a pointer to memory", location=s)
+            return 
+        
+def rd_leaks_addr_into_ctx(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot memorize a pointer into context", location=s)
+            return 
+
+def cannot_write_into_packet(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot write into packet", location=s)
+            return
+
+def rd_leaks_addr_into_packet(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot memorize a pointer into packet", location=s)
+            return 
+
+def rd_leaks_addr_into_flow_keys(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot memorize a pointer into flow keys", location=s)
             return 
