@@ -367,3 +367,11 @@ def rd_leaks_addr_into_flow_keys(output):
         if s.startswith(';'):
             print_error(f"Cannot memorize a pointer into flow keys", location=s)
             return 
+
+#probably not reachable     
+def atomic_stores_into_type_not_allowed(output, type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot store value into {get_type(type)}", location=s)
+            return 
+        

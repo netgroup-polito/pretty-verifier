@@ -284,6 +284,14 @@ def handle_error(output_raw, c_source_file, bytecode_file):
     if rd_leaks_addr_into_flow_keys_pattern:
         rd_leaks_addr_into_flow_keys(output)    
         return
-        
+    
+    
+    atomic_stores_into_type_not_allowed_pattern = re.search(r"BPF_ATOMIC stores into R(\d+) (.*?) is not allowed", error)
+    if atomic_stores_into_type_not_allowed_pattern:
+        atomic_stores_into_type_not_allowed(
+            output,
+            atomic_stores_into_type_not_allowed_pattern.group(2)
+            )    
+        return   
 
     not_found(error)
