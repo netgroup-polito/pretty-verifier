@@ -293,5 +293,73 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             atomic_stores_into_type_not_allowed_pattern.group(2)
             )    
         return   
+    
+    invalid_read_from_stack_pattern = re.search(r"invalid (.*?) read from stack R(\d+) off (\d+)+(\d+) size (\d+)", error)
+    if invalid_read_from_stack_pattern:
+        invalid_read_from_stack(
+            output,
+            invalid_read_from_stack_pattern.group(1)
+            )    
+        return   
+    
+    invalid_read_from_stack_var_off_pattern = re.search(r"invalid (.*?) read from stack R(\d+) var_off (.*?)+(\d+) size (\d+)", error)
+    if invalid_read_from_stack_var_off_pattern:
+        invalid_read_from_stack(
+            output,
+            invalid_read_from_stack_pattern.group(1)
+            )    
+        return 
 
+    min_value_is_negative_2_pattern = re.search(r"R(\d+) min value is negative, either use unsigned or 'var &= const'", error)
+    if min_value_is_negative_2_pattern:
+        min_value_is_negative_2(output)
+  
+    unbounded_mem_access_pattern = re.search(r"R(\d+) unbounded memory access, use 'var &= const' or 'if (var < const)'", error)
+    if unbounded_mem_access_pattern:
+        unbounded_mem_access(output)
+        
+    
+    map_has_to_have_BTF_pattern = re.search(r"map '(.*?)' has to have BTF in order to use bpf_spin_lock", error)
+    if map_has_to_have_BTF_pattern:
+        map_has_to_have_BTF(
+            output,
+            map_has_to_have_BTF_pattern.group(1)
+            )
+
+    dynptr_has_to_be_uninit_pattern = re.search(r"Dynptr has to be an uninitialized dynptr", error)
+    if dynptr_has_to_be_uninit_pattern:
+        dynptr_has_to_be_uninit(output)
+        
     not_found(error)
+
+    expected_initialized_dynptr_pattern = re.search(r"Expected an initialized dynptr as arg #(\d+)", error)
+    if expected_initialized_dynptr_pattern:
+        expected_initialized_dynptr(
+            output,
+            expected_initialized_dynptr_pattern.group(1)
+            ) 
+          
+    expected_dynptr_of_type_help_fun_pattern = re.search(r"Expected a dynptr of type (.*?) as arg #(\d+)", error)
+    if expected_dynptr_of_type_help_fun_pattern:
+        expected_dynptr_of_type_help_fun(
+            output,
+            expected_dynptr_of_type_help_fun_pattern.group(1),
+            expected_dynptr_of_type_help_fun_pattern.group(2)
+        )
+
+    expected_uninitialized_iter_pattern = re.search(r"expected uninitialized iter_(.*?) as arg #(\d+)", error)
+    if expected_uninitialized_iter_pattern:
+        expected_uninitialized_iter(
+            output,
+            expected_uninitialized_iter_pattern.group(1),
+            expected_uninitialized_iter_pattern.group(2)
+            ) 
+
+    expected_initialized_iter_pattern = re.search(r"expected an initialized iter_(.*?) as arg #(\d+)", error)
+    if expected_initialized_iter_pattern:
+        expected_initialized_iter(
+            output,
+            expected_initialized_iter_pattern.group(1),
+            expected_initialized_iter_pattern.group(2)
+            ) 
+        

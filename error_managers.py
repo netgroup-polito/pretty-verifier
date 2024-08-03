@@ -241,7 +241,7 @@ def min_value_is_negative(output):
             return 
 
 def unbounded_mem_access(output):
-    suggestion = "You need to add a bound check to the accessed memory"
+    suggestion = "Use 'var &= const' or 'if (var < const)'"
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Unbounded memory access", location=s, suggestion=suggestion)
@@ -375,3 +375,50 @@ def atomic_stores_into_type_not_allowed(output, type):
             print_error(f"Cannot store value into {get_type(type)}", location=s)
             return 
         
+def invalid_read_from_stack(output, indirect):
+    indirect = indirect == "indirect"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid read from stack, variable must be initialized")
+            return
+
+def min_value_is_negative_2(output):
+    suggestion = "Use unsigned or 'var &= const'"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Minimum possible value is not allowed to be negative", location=s, suggestion=suggestion)
+            return 
+
+def map_has_to_have_BTF(output, map):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Map {map} has to have a BTF definition in order to be used", location=s)
+            return 
+        
+def dynptr_has_to_be_uninit(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Dynamic pointer must be uninitialized when passed to this helper function", location=s)
+            return 
+def expected_initialized_dynptr(output, arg):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Expected initialized dynamic pointer in argument #{arg} of helper function", location=s)
+            return 
+def expected_dynptr_of_type_help_fun(output, type, arg):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Expected dynamic pointer of type {get_type(type)} in argument #{arg} of helper function", location=s)
+            return 
+        
+def expected_uninitialized_iter(output, type, arg):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Expected uninitialized iterator of type {get_type(type)} in argument #{arg} of helper function", location=s)
+            return 
+        
+def expected_initialized_iter(output, type, arg):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Expected initialized iterator of type {get_type(type)} in argument #{arg} of helper function", location=s)
+            return 
