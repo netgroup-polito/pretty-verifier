@@ -313,10 +313,12 @@ def handle_error(output_raw, c_source_file, bytecode_file):
     min_value_is_negative_2_pattern = re.search(r"R(\d+) min value is negative, either use unsigned or 'var &= const'", error)
     if min_value_is_negative_2_pattern:
         min_value_is_negative_2(output)
+        return
   
     unbounded_mem_access_pattern = re.search(r"R(\d+) unbounded memory access, use 'var &= const' or 'if (var < const)'", error)
     if unbounded_mem_access_pattern:
         unbounded_mem_access(output)
+        return
         
     
     map_has_to_have_BTF_pattern = re.search(r"map '(.*?)' has to have BTF in order to use bpf_spin_lock", error)
@@ -325,19 +327,20 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             output,
             map_has_to_have_BTF_pattern.group(1)
             )
+        return
 
     dynptr_has_to_be_uninit_pattern = re.search(r"Dynptr has to be an uninitialized dynptr", error)
     if dynptr_has_to_be_uninit_pattern:
         dynptr_has_to_be_uninit(output)
+        return
         
-    not_found(error)
-
     expected_initialized_dynptr_pattern = re.search(r"Expected an initialized dynptr as arg #(\d+)", error)
     if expected_initialized_dynptr_pattern:
         expected_initialized_dynptr(
             output,
             expected_initialized_dynptr_pattern.group(1)
             ) 
+        return
           
     expected_dynptr_of_type_help_fun_pattern = re.search(r"Expected a dynptr of type (.*?) as arg #(\d+)", error)
     if expected_dynptr_of_type_help_fun_pattern:
@@ -346,6 +349,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             expected_dynptr_of_type_help_fun_pattern.group(1),
             expected_dynptr_of_type_help_fun_pattern.group(2)
         )
+        return
 
     expected_uninitialized_iter_pattern = re.search(r"expected uninitialized iter_(.*?) as arg #(\d+)", error)
     if expected_uninitialized_iter_pattern:
@@ -354,6 +358,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             expected_uninitialized_iter_pattern.group(1),
             expected_uninitialized_iter_pattern.group(2)
             ) 
+        return
 
     expected_initialized_iter_pattern = re.search(r"expected an initialized iter_(.*?) as arg #(\d+)", error)
     if expected_initialized_iter_pattern:
@@ -362,4 +367,136 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             expected_initialized_iter_pattern.group(1),
             expected_initialized_iter_pattern.group(2)
             ) 
+        return
+    
+    possibly_null_pointer_to_helper_fun_pattern = re.search(r"Possibly NULL pointer passed to helper arg(\d+)", error)
+    if possibly_null_pointer_to_helper_fun_pattern:
+        possibly_null_pointer_to_helper_fun(
+            output,
+            possibly_null_pointer_to_helper_fun_pattern.group(1)
+            )
+        return
+    
+    rd_of_type_but_expected_pattern = re.search(r"R(\d+) is of type (.*?) but (.*?) is expected", error)
+    if rd_of_type_but_expected_pattern:
+        rd_of_type_but_expected(
+            output,
+            rd_of_type_but_expected_pattern.group(2),
+            rd_of_type_but_expected_pattern.group(3)
+            )
+        return
+    
+    helper_access_to_packet_not_allowed_pattern = re.search(r"helper access to the packet is not allowed", error)
+    if helper_access_to_packet_not_allowed_pattern:
+        helper_access_to_packet_not_allowed(output)
+        return
+    
+    rd_not_point_to_readonly_map_pattern = re.search(r"R(\d+) does not point to a readonly map'", error)
+    if rd_not_point_to_readonly_map_pattern:
+        rd_not_point_to_readonly_map(output)
+        return
+    
+    cannot_pass_map_type_into_func_pattern = re.search(r"cannot pass map_type (\d+) into func (.*?)#(\d+)", error)
+    if cannot_pass_map_type_into_func_pattern:
+        cannot_pass_map_type_into_func(
+            output,
+            cannot_pass_map_type_into_func_pattern.group(1),
+            cannot_pass_map_type_into_func_pattern.group(2),
+            cannot_pass_map_type_into_func_pattern.group(3),
+            )
+        return
         
+    cannot_return_stack_pointer_pattern = re.compile(r"cannot return stack pointer to the caller")
+    if cannot_return_stack_pointer_pattern.match(error):
+        cannot_return_stack_pointer(output)
+        return
+
+    r0_not_scalar_pattern = re.compile(r"R0 not a scalar value")
+    if r0_not_scalar_pattern.match(error):
+        r0_not_scalar(output)
+        return
+    
+    verbose_invalid_scalar_pattern = re.search(r"At (.*?) the register (.*?) has (value (.*?)|unknown scalar value) should have been in (.*?)", error)
+    if verbose_invalid_scalar_pattern:
+        verbose_invalid_scalar(
+            output,
+            verbose_invalid_scalar_pattern.group(1),
+            verbose_invalid_scalar_pattern.group(2),
+            verbose_invalid_scalar_pattern.group(3),
+            verbose_invalid_scalar_pattern.group(5),
+            )
+        return
+
+    write_into_map_forbidden_pattern = re.compile(r"write into map forbidden")
+    if write_into_map_forbidden_pattern.match(error):
+        write_into_map_forbidden(output)
+        return
+    
+    unreleased_reference_pattern = re.search(r"Unreleased reference id=(\d+) alloc_insn=(\d+)", error)
+    if unreleased_reference_pattern:
+        unreleased_reference(output)
+        return
+
+    func_only_supported_for_fentry_pattern = re.search(r"func (.*?)#(\d+) supported only for fentry/fexit/fmod_ret programs", error)
+    if func_only_supported_for_fentry_pattern:
+        func_only_supported_for_fentry(
+            output,
+            func_only_supported_for_fentry_pattern.group(1)
+            )
+        return
+
+    func_not_supported_for_prog_type_pattern = re.search(r"func (.*?)#(\d+) not supported for program type (\d+)", error)
+    if func_not_supported_for_prog_type_pattern:
+        func_not_supported_for_prog_type(
+            output,
+            func_not_supported_for_prog_type_pattern.group(1),
+            func_not_supported_for_prog_type_pattern.group(3)    
+            )
+        return
+    
+    invalid_func_pattern = re.search(r"invalid func (.*?)#(\d+)", error)
+    if invalid_func_pattern:
+        invalid_func(
+            output,
+            invalid_func_pattern.group(1)
+            )
+        return
+    
+    unknown_func_pattern = re.search(r"unknown func (.*?)#(\d+)", error)
+    if unknown_func_pattern:
+        unknown_func(
+            output,
+            unknown_func_pattern.group(1)
+            )
+        return
+    
+    
+    sleep_called_in_non_sleep_prog_pattern = re.search(r"helper call might sleep in a non-sleepable prog", error)
+    if sleep_called_in_non_sleep_prog_pattern:
+        sleep_called_in_non_sleep_prog(output)
+        return
+    
+    tail_call_lead_to_leak_pattern = re.search(r"tail_call would lead to reference leak", error)
+    if tail_call_lead_to_leak_pattern:
+        tail_call_lead_to_leak(output)
+        return
+    
+    invalid_return_type_pattern = re.search(r"invalid return type (.*?) of func (.*?)#(\d+)", error)
+    if invalid_return_type_pattern:
+        invalid_return_type(
+            output,
+            invalid_return_type_pattern.group(1),
+            invalid_return_type_pattern.group(2)
+            )
+        return
+    
+    unknown_return_type_pattern = re.search(r"unknown return type (.*?) of func (.*?)#(\d+)", error)
+    if unknown_return_type_pattern:
+        unknown_return_type(
+            output,
+            unknown_return_type_pattern.group(1),
+            unknown_return_type_pattern.group(2)
+            )
+        return
+
+    not_found(error)

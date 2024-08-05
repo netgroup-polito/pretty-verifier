@@ -34,10 +34,17 @@ def get_type(type):
     return ret_val
         
 def type_mismatch(output, reg, type, expected):
+    expecteds = expected.split(", ")
     for s in reversed(output):
         if s.startswith(';'):
             value = s.split("(")[1][:-1].split(",")[int(reg)-1]
-            appendix = f"{reg}° argument ({value}) is a {get_type(type)}, but a {get_type(expected)} is expected"
+            if len(expecteds)>1:
+                expected_types = f"{get_type(expecteds[0])}"
+                for e in expecteds[1:]:
+                    expected_types += f", or a {get_type(e)}"
+                appendix = f"{reg}° argument ({value}) is a {get_type(type)}, but a {expected_types} is expected"
+            else:
+                appendix = f"{reg}° argument ({value}) is a {get_type(type)}, but a {get_type(expected)} is expected"
 
             print_error(f"Wrong argument passed to helper function", location=s, appendix=appendix)
             return
@@ -422,3 +429,116 @@ def expected_initialized_iter(output, type, arg):
         if s.startswith(';'):
             print_error(f"Expected initialized iterator of type {get_type(type)} in argument #{arg} of helper function", location=s)
             return 
+
+def possibly_null_pointer_to_helper_fun(output, arg):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Possibly NULL pointer passed to helper arg {arg}", location=s)
+            return
+def rd_of_type_but_expected(output, type, expected):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"BTF of type {type} found, {expected} is expected", location=s)
+            return
+
+def helper_access_to_packet_not_allowed(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Helper function cannot access packet", location=s)
+            return
+def rd_not_point_to_readonly_map(output):
+    suggestion = "You are likely passing a string literal to the function\n"+\
+        "define it in a static const variable to put in a read only memory section"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Helper function argument doesn't point to read only map", location=s, suggestion=suggestion)
+            return
+        
+def cannot_pass_map_type_into_func(output, map_type, fun_name, fun_id):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Map {map_type} cannot be passed into function '{fun_name}' because of type incompatibility", location=s)
+            return
+
+def cannot_return_stack_pointer(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot return stack pointer to the caller", location=s)
+            return
+
+def r0_not_scalar(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Return value must be a scalar value", location=s)
+            return
+def verbose_invalid_scalar(output, ctx, reg, val, range):
+    for s in reversed(output):
+        if val:
+            join = f"has value {val}"
+        else:
+            join = f"has unknown scalar value"
+        appendix= f"Should have been in {range}"
+        if s.startswith(';'):
+            print_error(f"At {ctx} {join}", location=s, appendix=appendix)
+            return
+        
+def write_into_map_forbidden(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot write into map in read only program", location=s)
+            return
+        
+def unreleased_reference(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Reference is not released", location=s)
+            return
+        
+def func_only_supported_for_fentry(output, func):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Function {func} is supported only for fentry/fexit/fmod_ret programs", location=s)
+            return
+def func_not_supported_for_prog_type(output, func, prog_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Function {func} is not supported for program type {prog_type}", location=s)
+            return
+        
+def invalid_func(output, func):
+    suggestion = "Your kernel is too old or the helper has been compiled out"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid function {func}", location=s, suggestion=suggestion)
+            return
+        
+def unknown_func(output, func):
+    suggestion = "Your kernel is too old or the helper has been compiled out"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Unknown function {func}", location=s, suggestion=suggestion)
+            return
+        
+def sleep_called_in_non_sleep_prog(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Helper function might sleep in non-sleepable program", location=s)
+            return
+        
+def tail_call_lead_to_leak(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Tail call of helper function would lead to reference leak", location=s)
+            return
+
+def invalid_return_type(output, type, func):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Function {func} has an invalid return type {type}", location=s)
+            return
+        
+def unknown_return_type(output, type, func):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Function {func} has an unknown return type {type}", location=s)
+            return
