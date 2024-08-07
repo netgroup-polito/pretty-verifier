@@ -140,8 +140,8 @@ def handle_error(output_raw, c_source_file, bytecode_file):
     if invalid_access_to_flow_keys_pattern:
         invalid_access_to_flow_keys(
             output, 
-            invalid_access_to_flow_keys_pattern.group(1),
-            invalid_access_to_flow_keys_pattern.group(2)              
+            int(invalid_access_to_flow_keys_pattern.group(1)),
+            int(invalid_access_to_flow_keys_pattern.group(2))              
         )
         return
 
@@ -497,6 +497,132 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             unknown_return_type_pattern.group(1),
             unknown_return_type_pattern.group(2)
             )
+        return
+    
+    kernel_fun_pointer_not_supported_pattern = re.search(r"kernel function (.*?) args#(\d+) pointer type (.*?) (.*?) is not supported", error)
+    if kernel_fun_pointer_not_supported_pattern:
+        kernel_fun_pointer_not_supported(
+            output,
+            kernel_fun_pointer_not_supported_pattern.group(1),
+            kernel_fun_pointer_not_supported_pattern.group(2),
+            kernel_fun_pointer_not_supported_pattern.group(3),
+            kernel_fun_pointer_not_supported_pattern.group(4)
+            )
+        return
+    
+    arg_pointer_must_point_to_scalar_pattern = re.search(r"arg#(\d+) pointer type (.*?) (.*?) must point to (.*?)scalar, or struct with scalar", error)
+    if arg_pointer_must_point_to_scalar_pattern:
+        arg_pointer_must_point_to_scalar(
+            output,
+            arg_pointer_must_point_to_scalar_pattern.group(1),
+            arg_pointer_must_point_to_scalar_pattern.group(2),
+            arg_pointer_must_point_to_scalar_pattern.group(3),
+            arg_pointer_must_point_to_scalar_pattern.group(4)
+            )
+        return
+    
+    kernel_fun_expected_pointer_pattern = re.search(r"kernel function (.*?) args#(\d+) expected pointer to (.*?) (.*?) but R(\d+) has a pointer to (.*?) (.*?)", error)
+    if kernel_fun_expected_pointer_pattern:
+        kernel_fun_expected_pointer(
+            output,
+            kernel_fun_expected_pointer_pattern.group(1),
+            kernel_fun_expected_pointer_pattern.group(2),
+            kernel_fun_expected_pointer_pattern.group(3),
+            kernel_fun_expected_pointer_pattern.group(4),
+            kernel_fun_expected_pointer_pattern.group(6),
+            kernel_fun_expected_pointer_pattern.group(7),
+            )
+        return
+    
+
+    function_has_more_args_pattern = re.search(r"Function (.*?) has (\d+) > (\d+) args", error)
+    if function_has_more_args_pattern:
+        function_has_more_args(
+            output,
+            function_has_more_args_pattern.group(1),
+            int(function_has_more_args_pattern.group(2)),
+            int(function_has_more_args_pattern.group(3))
+        )
+        return
+
+    register_not_scalar_pattern = re.search(r"R(\d+) is not a scalar", error)
+    if register_not_scalar_pattern:
+        register_not_scalar(
+            output,
+            int(register_not_scalar_pattern.group(1))
+        )
+        return
+
+    possibly_null_pointer_passed_pattern = re.search(r"Possibly NULL pointer passed to trusted arg(\d+)", error)
+    if possibly_null_pointer_passed_pattern:
+        possibly_null_pointer_passed(
+            output,
+            int(possibly_null_pointer_passed_pattern.group(1))
+        )
+        return
+    
+    arg_expected_allocated_pointer_pattern = re.search(r"arg#(\d+) expected pointer to allocated object", error)
+    if arg_expected_allocated_pointer_pattern:
+        arg_expected_allocated_pointer(
+            output,
+            int(arg_expected_allocated_pointer_pattern.group(1))
+        )
+        return
+
+    arg_expected_pointer_to_ctx_pattern = re.search(r"arg#(\d+) expected pointer to ctx, but got (.*?)", error)
+    if arg_expected_pointer_to_ctx_pattern:
+        arg_expected_pointer_to_ctx(
+            output,
+            int(arg_expected_pointer_to_ctx_pattern.group(1)),
+            arg_expected_pointer_to_ctx_pattern.group(2)
+        )
+        return
+
+    arg_expected_pointer_to_stack_pattern = re.search(r"arg#(\d+) expected pointer to stack or dynptr_ptr", error)
+    if arg_expected_pointer_to_stack_pattern:
+        arg_expected_pointer_to_stack(
+            output,
+            int(arg_expected_pointer_to_stack_pattern.group(1))
+        )
+        return
+
+    arg_is_expected_pattern = re.search(r"arg#(\d+) is (.*?) expected (.*?) or socket", error)
+    if arg_is_expected_pattern:
+        arg_is_expected(
+            output,
+            int(arg_is_expected_pattern.group(1)),
+            arg_is_expected_pattern.group(2),
+            arg_is_expected_pattern.group(3)
+        )
+        return
+    
+
+    arg_reference_type_pattern = re.search(r"arg#(\d+) reference type\('(.*?) (.*?)'\) size cannot be determined: (\d+)", error)
+    if arg_reference_type_pattern:
+        arg_reference_type(
+            output,
+            int(arg_reference_type_pattern.group(1)),
+            arg_reference_type_pattern.group(2),
+            arg_reference_type_pattern.group(3),
+            int(arg_reference_type_pattern.group(4))
+        )
+        return
+    
+    len_pair_lead_to_invalid_mem_access_pattern = re.search(r"arg#(\d+) arg#(\d+) memory, len pair leads to invalid memory access", error)
+    if len_pair_lead_to_invalid_mem_access_pattern:
+        len_pair_lead_to_invalid_mem_access(
+            output,
+            int(len_pair_lead_to_invalid_mem_access_pattern.group(1)),
+            int(len_pair_lead_to_invalid_mem_access_pattern.group(2))
+        )
+        return
+    
+    expected_pointer_to_func_pattern = re.search(r"arg(\d+) expected pointer to func", error)
+    if expected_pointer_to_func_pattern:
+        expected_pointer_to_func(
+            output,
+            int(expected_pointer_to_func_pattern.group(1))
+        )
         return
 
     not_found(error)

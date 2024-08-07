@@ -196,9 +196,9 @@ def __check_mem_access_check(output, line):
     if invalid_accesss_to_map_key_pattern:
         invalid_accesss_to_map_key(
             output,
-            invalid_accesss_to_map_key_pattern.group(1),
-            invalid_accesss_to_map_key_pattern.group(2),
-            invalid_accesss_to_map_key_pattern.group(3),
+            int(invalid_accesss_to_map_key_pattern.group(1)),
+            int(invalid_accesss_to_map_key_pattern.group(2)),
+            int(invalid_accesss_to_map_key_pattern.group(3)),
         )
         return
 
@@ -206,27 +206,27 @@ def __check_mem_access_check(output, line):
     if invalid_accesss_to_map_value_pattern:
         invalid_accesss_to_map_value(
             output,
-            invalid_accesss_to_map_value_pattern.group(1),
-            invalid_accesss_to_map_value_pattern.group(2),
-            invalid_accesss_to_map_value_pattern.group(3),
+            int(invalid_accesss_to_map_value_pattern.group(1)),
+            int(invalid_accesss_to_map_value_pattern.group(2)),
+            int(invalid_accesss_to_map_value_pattern.group(3)),
         )
         return
     invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(\d+) size=(\d+), R(\d+)(id=(\d+),off=(\d+),r=(\d+))", line)
     if invalid_accesss_to_packet_pattern:
         invalid_accesss_to_packet(
             output,
-            invalid_accesss_to_packet_pattern.group(6),
-            invalid_accesss_to_packet_pattern.group(1),
-            invalid_accesss_to_packet_pattern.group(2),
+            int(invalid_accesss_to_packet_pattern.group(6)),
+            int(invalid_accesss_to_packet_pattern.group(1)),
+            int(invalid_accesss_to_packet_pattern.group(2)),
         )
         return
     invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, key_size=(\d+) off=(\d+) size=(\d+)", line)
     if invalid_accesss_to_mem_region_pattern:
         invalid_accesss_to_mem_region(
             output,
-            invalid_accesss_to_mem_region_pattern.group(1),
-            invalid_accesss_to_mem_region_pattern.group(2),
-            invalid_accesss_to_mem_region_pattern.group(3),
+            int(invalid_accesss_to_mem_region_pattern.group(1)),
+            int(invalid_accesss_to_mem_region_pattern.group(2)),
+            int(invalid_accesss_to_mem_region_pattern.group(3)),
         )
         return
 def min_value_is_outside_mem_range(output):
@@ -541,4 +541,94 @@ def unknown_return_type(output, type, func):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Function {func} has an unknown return type {type}", location=s)
+            return
+
+def kernel_fun_pointer_not_supported(output, fun, arg, btf, btf_name):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg} of kernel function {fun} has pointer of type {btf} {btf_name} that is not supported", location=s)
+            return
+
+def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
+    if void:
+        void = f"{void}, "
+    else:
+        void = ""
+    max_nesting=False
+    for s in reversed(output):
+        if re.compile(r"max struct nesting depth exceeded"):
+            max_nesting = True
+        if s.startswith(';'):
+            if max_nesting:
+                print_error(f"Argument n°{arg} has pointer of type {btf} {btf_name} that exceeds max struct nesting of 3", location=s)
+            else:
+                print_error(f"Argument n°{arg} has pointer of type {btf} {btf_name} must point to {void}scalar, or struct with scalar", location=s)
+            return
+
+def kernel_fun_expected_pointer(output, fun, arg, btf, btf_name, btf_expected, btf_name_expected):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg} of kernel function {fun} has pointer of type {btf} {btf_name}, while {btf_expected} {btf_name_expected} is expected", location=s)
+            return
+
+def function_has_more_args(output, func, current_args, max_args):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Function {func} has {current_args} arguments, which exceeds the maximum of {max_args}", location=s)
+            return
+
+def register_not_scalar(output, register):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{register} of kernel function must be a scalar", location=s)
+            return
+
+def possibly_null_pointer_passed(output, arg_num):
+    suggestion = "Add a not null check of the argument"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} of kernel function may be null", location=s, suggestion=suggestion)
+            return
+
+def arg_expected_allocated_pointer(output, arg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} of kernel function expected pointer to allocated BTF object", location=s)
+            return
+
+
+def arg_expected_pointer_to_ctx(output, arg_num, received_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} of kernel function expected pointer to context, but got {get_type(received_type)}", location=s)
+            return
+
+def arg_expected_pointer_to_stack(output, arg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} of kernel function expected pointer to stack or dynamic pointer", location=s)
+            return
+
+def arg_is_expected(output, arg_num, actual_type, expected_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} of kernel function is {get_type(actual_type)}, expected {get_type(expected_type)} or socket", location=s)
+            return
+
+def arg_reference_type(output, arg_num, type_name, type_detail, size):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} of kernel function reference type {type_name} {type_detail} size cannot be determined: {size}", location=s)
+            return
+
+def len_pair_lead_to_invalid_mem_access(output, memory_arg_num, len_arg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument pair n°{memory_arg_num} and n°{len_arg_num} usage lead to invalid memory access", location=s)
+            return
+
+def expected_pointer_to_func(output, arg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Argument n°{arg_num} expected pointer to function", location=s)
             return
