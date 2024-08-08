@@ -632,3 +632,27 @@ def expected_pointer_to_func(output, arg_num):
         if s.startswith(';'):
             print_error(f"Argument n°{arg_num} expected pointer to function", location=s)
             return
+
+def calling_kernel_function(output, func_name):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Kernel function {func_name} is not allowed to be called", location=s)
+            return
+
+def program_must_be_sleepable(output, kfunc_name):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Kernel function {kfunc_name} might sleep in non-sleepable program", location=s)
+            return
+
+def kernel_function_unhandled_dynamic_return_type(output, func_name):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Kernel function {func_name} has an unhandled dynamic return type", location=s)
+            return
+
+def kernel_function_pointer_type(output, func_name, pointer_type, additional_info):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Kernel function {func_name} returns pointer type {pointer_type} {additional_info} is not supported", location=s)
+            return

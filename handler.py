@@ -625,4 +625,30 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         )
         return
 
+    program_must_be_sleepable_pattern = re.search(r"program must be sleepable to call sleepable kfunc (.*?)", error)
+    if program_must_be_sleepable_pattern:
+        program_must_be_sleepable(
+            output,
+            program_must_be_sleepable_pattern.group(1)
+        )
+        return
+    
+    kernel_function_unhandled_dynamic_return_type_pattern = re.search(r"kernel function (.*?) unhandled dynamic return type", error)
+    if kernel_function_unhandled_dynamic_return_type_pattern:
+        kernel_function_unhandled_dynamic_return_type(
+            output,
+            kernel_function_unhandled_dynamic_return_type_pattern.group(1)
+        )
+        return
+
+    kernel_function_pointer_type_pattern = re.search(r"kernel function (.*?) returns pointer type (.*?) (.*?) is not supported", error)
+    if kernel_function_pointer_type_pattern:
+        kernel_function_pointer_type(
+            output,
+            kernel_function_pointer_type_pattern.group(1),
+            kernel_function_pointer_type_pattern.group(2),
+            kernel_function_pointer_type_pattern.group(3)
+        )
+        return
+
     not_found(error)
