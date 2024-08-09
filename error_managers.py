@@ -656,3 +656,28 @@ def kernel_function_pointer_type(output, func_name, pointer_type, additional_inf
         if s.startswith(';'):
             print_error(f"Kernel function {func_name} returns pointer type {pointer_type} {additional_info} is not supported", location=s)
             return
+
+def math_between_pointer(output, pointer_type, value):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
+            return
+        
+def pointer_offset_not_allowed(output, pointer_type, offset):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Accessing {get_type(pointer_type)} pointer with offset {offset}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
+            return
+
+def math_between_pointer_and_unbounded_register(output, pointer_type):
+    suggestion = "Add a check for the index using to access the pointer (array) to be >=0"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Accessing {get_type(pointer_type)} pointer withoun lower bound check", location=s, suggestion=suggestion)
+            return
+
+def value_out_of_bounds(output, value, pointer_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
+            return

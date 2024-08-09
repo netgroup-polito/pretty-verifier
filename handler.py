@@ -650,5 +650,33 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             kernel_function_pointer_type_pattern.group(3)
         )
         return
+    
 
+    math_between_pointer_pattern = re.search(r"math between (.*?) pointer and (-?\d+) is not allowed", error)
+    if math_between_pointer_pattern:
+        math_between_pointer(
+            output,
+            math_between_pointer_pattern.group(1),
+            int(math_between_pointer_pattern.group(2))
+        )
+        return
+    
+    pointer_offset_not_allowed_pattern = re.search(r"(.*?) pointer offset (-?\d+) is not allowed", error)
+    if pointer_offset_not_allowed_pattern:
+        pointer_offset_not_allowed(
+            output,
+            pointer_offset_not_allowed_pattern.group(1),
+            int(pointer_offset_not_allowed_pattern.group(2))
+        )
+        return
+
+    value_out_of_bounds_pattern = re.search(r"value (-?\d+) makes (.*?) pointer be out of bounds", error)
+    if value_out_of_bounds_pattern:
+        value_out_of_bounds(
+            output,
+            int(value_out_of_bounds_pattern.group(1)),
+            value_out_of_bounds_pattern.group(2)
+        )
+        return
+    
     not_found(error)
