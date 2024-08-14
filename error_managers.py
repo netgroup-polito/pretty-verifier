@@ -681,3 +681,85 @@ def value_out_of_bounds(output, value, pointer_type):
         if s.startswith(';'):
             print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
             return
+        
+def reason_bounds(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Unknown scalar with mixed signed bounds, pointer arithmetic with it prohibited for !root", location=s)
+            return
+        
+def reason_type(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Pointer not supported for alu operations", location=s)
+            return
+        
+def reason_paths(output, reg_num, operation):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"{operation.capitalize()} from different maps, paths or scalars, pointer arithmetic with it prohibited for !root", location=s)
+            return
+        
+def reason_limit(output, reg_num, operation):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"{operation.capitalize()} beyond pointer bounds, pointer arithmetic with it prohibited for !root", location=s)
+            return
+        
+def reason_stack(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Speculative verification couldn't be pushed, pointer arithmetic with it prohibited for !root", location=s)
+            return
+    
+def pointer_arithmetic_out_of_range(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Pointer arithmetic of map value goes out of range", location=s)
+            return
+
+def bit32_pointer_arithmetic_prohibited(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"32-bit ALU operations on pointers produce (meaningless) scalars", location=s)
+            return
+        
+def pointer_arithmetic_null_check(output, reg_num, value_type):
+    suggestion = "Add a null-check first"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Pointer arithmetic on {get_type(value_type)} prohibited on possibly null type", location=s, suggestion= suggestion)
+            return
+
+def pointer_arithmetic_prohibited(output, reg_num, value_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Pointer arithmetic on {get_type(value_type)} prohibited", location=s)
+            return
+        
+def subtract_pointer_from_scalar(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot subtract pointer from scalar", location=s)
+            return
+
+def subtraction_from_stack_pointer(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot subtract from stack pointer", location=s)
+            return
+        
+def bitwise_operator_on_pointer(output, reg_num, operator):
+    appendix = "Only addiction and subtraction are allowed"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Bitwise operations ({operator}) on pointer prohibited", location=s, appendix=appendix)
+            return
+
+def pointer_arithmetic_with_operator(output, reg_num, operator):
+    appendix = "Only addiction and subtraction are allowed"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"{operator} prohibited in pointer arithmetic", location=s, appendix=appendix)
+            return
+

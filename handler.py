@@ -678,5 +678,114 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             value_out_of_bounds_pattern.group(2)
         )
         return
+    # CE
+    reason_bounds_pattern = re.search(r"R(\d+) has unknown scalar with mixed signed bounds, pointer arithmetic with it prohibited for !root", error)
+    if reason_bounds_pattern:
+        reason_bounds(
+            output,
+            int(reason_bounds_pattern.group(1))
+        )
+        return
+    reason_type_pattern = re.search(r"R(\d+) has pointer with unsupported alu operation, pointer arithmetic with it prohibited for !root", error)
+    if reason_type_pattern:
+        reason_type(
+            output,
+            int(reason_type_pattern.group(1))
+        )
+        return
+    # not used
+    reason_paths_pattern = re.search(r"R(\d+) tried to (add|sub) from different maps, paths or scalars, pointer arithmetic with it prohibited for !root", error)
+    if reason_paths_pattern:
+        reason_paths(
+            output,
+            int(reason_paths_pattern.group(1)),
+            reason_paths_pattern.group(2)
+        )
+        return
+    
+    reason_limit_pattern = re.search(r"R(\d+) tried to (add|sub) beyond pointer bounds, pointer arithmetic with it prohibited for !root", error)
+    if reason_limit_pattern:
+        reason_limit(
+            output,
+            int(reason_limit_pattern.group(1)),
+            reason_limit_pattern.group(2)
+        )
+        return
+    reason_stack_pattern = re.search(r"R(\d+) could not be pushed for speculative verification, pointer arithmetic with it prohibited for !root", error)
+    if reason_stack_pattern:
+        reason_stack(
+            output,
+            int(reason_stack_pattern.group(1))
+        )
+        return
+
+    pointer_arithmetic_out_of_range_pattern = re.search(r"R(\d+) pointer arithmetic of map value goes out of range, prohibited for !root", error)
+    if pointer_arithmetic_out_of_range_pattern:
+        pointer_arithmetic_out_of_range(
+            output,
+            int(pointer_arithmetic_out_of_range_pattern.group(1))
+        )
+        return
+    
+    bit32_pointer_arithmetic_prohibited_pattern = re.search(r"R(\d+) 32-bit pointer arithmetic prohibited", error)
+    if bit32_pointer_arithmetic_prohibited_pattern:
+        bit32_pointer_arithmetic_prohibited(
+            output,
+            int(bit32_pointer_arithmetic_prohibited_pattern.group(1))
+        )
+        return
+    
+    pointer_arithmetic_null_check_pattern = re.search(r"R(\d+) pointer arithmetic on (.*?) prohibited, null-check it first", error)
+    if pointer_arithmetic_null_check_pattern:
+        pointer_arithmetic_null_check(
+            output,
+            int(pointer_arithmetic_null_check_pattern.group(1)),
+            pointer_arithmetic_null_check_pattern.group(2)
+        )
+        return
+    
+    pointer_arithmetic_prohibited_pattern = re.search(r"R(\d+) pointer arithmetic on (.*?) prohibited", error)
+    if pointer_arithmetic_prohibited_pattern:
+        pointer_arithmetic_prohibited(
+            output,
+            int(pointer_arithmetic_prohibited_pattern.group(1)),
+            pointer_arithmetic_prohibited_pattern.group(2)
+        )
+        return
+    
+    subtract_pointer_from_scalar_pattern = re.search(r"R(\d+) tried to subtract pointer from scalar", error)
+    if subtract_pointer_from_scalar_pattern:
+        subtract_pointer_from_scalar(
+            output,
+            int(subtract_pointer_from_scalar_pattern.group(1))
+        )
+        return
+
+    subtraction_from_stack_pointer_pattern = re.search(r"R(\d+) subtraction from stack pointer prohibited", error)
+    if subtraction_from_stack_pointer_pattern:
+        subtraction_from_stack_pointer(
+            output,
+            int(subtraction_from_stack_pointer_pattern.group(1))
+        )
+        return
+    
+    bitwise_operator_on_pointer_pattern = re.search(r"R(\d+) bitwise operator (.*?) on pointer prohibited", error)
+    if bitwise_operator_on_pointer_pattern:
+        bitwise_operator_on_pointer(
+            output,
+            int(bitwise_operator_on_pointer_pattern.group(1)),
+            bitwise_operator_on_pointer_pattern.group(2)
+        )
+        return
+        
+    pointer_arithmetic_with_operator_pattern = re.search(r"R(\d+) pointer arithmetic with (.*?) operator prohibited", error)
+    if pointer_arithmetic_with_operator_pattern:
+        pointer_arithmetic_with_operator(
+            output,
+            int(pointer_arithmetic_with_operator_pattern.group(1)),
+            pointer_arithmetic_with_operator_pattern.group(2)
+        )
+        return
+    
     
     not_found(error)
