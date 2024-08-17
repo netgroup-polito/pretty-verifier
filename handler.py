@@ -787,5 +787,140 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         )
         return
     
+    pointer_operation_prohibited_pattern = re.search(r"R(\d+) pointer (.*?) pointer prohibited", error)
+    if pointer_operation_prohibited_pattern:
+        pointer_operation_prohibited(
+            output,
+            int(pointer_operation_prohibited_pattern.group(1)),
+            pointer_operation_prohibited_pattern.group(2)
+        )
+        return
     
+    pointer_arithmetic_prohibited_pattern = re.search(r"R(\d+) pointer arithmetic prohibited", error)
+    if pointer_arithmetic_prohibited_pattern:
+        pointer_arithmetic_prohibited(
+            output,
+            int(pointer_arithmetic_prohibited_pattern.group(1))
+        )
+        return
+    
+    sign_extension_pointer_pattern = re.search(r"R(\d+) sign-extension part of pointer", error)
+    if sign_extension_pointer_pattern:
+        sign_extension_pointer(
+            output,
+            int(sign_extension_pointer_pattern.group(1))
+        )
+        return
+    
+    partial_copy_of_pointer_pattern = re.search(r"R(\d+) partial copy of pointer", error)
+    if partial_copy_of_pointer_pattern:
+        partial_copy_of_pointer(
+            output,
+            int(partial_copy_of_pointer_pattern.group(1))
+        )
+        return
+    
+    div_by_zero_pattern = re.search(r"div by zero", error)
+    if div_by_zero_pattern:
+        div_by_zero(
+            output
+        )
+        return
+
+    invalid_shift_pattern = re.search(r"invalid shift (\d+)", error)
+    if invalid_shift_pattern:
+        invalid_shift(
+            output,
+            int(invalid_shift_pattern.group(1))
+        )
+        return
+
+    pointer_comparison_prohibited_pattern = re.search(r"R(\d+) pointer comparison prohibited", error)
+    if pointer_comparison_prohibited_pattern:
+        pointer_comparison_prohibited(
+            output,
+            int(pointer_comparison_prohibited_pattern.group(1))
+        )
+        return
+
+    bpf_ld_instructions_not_allowed_pattern = re.search(r"BPF_LD_[ABS|IND] instructions not allowed for this program type", error)
+    if bpf_ld_instructions_not_allowed_pattern:
+        bpf_ld_instructions_not_allowed(
+            output
+        )
+        return
+
+    leaks_addr_as_return_value_pattern = re.search(r"R0 leaks addr as return value", error)
+    if leaks_addr_as_return_value_pattern:
+        leaks_addr_as_return_value(
+            output
+        )
+        return
+    
+    async_callback_register_not_known_pattern = re.search(r"In async callback the register R0 is not a known value \((.*?)\)", error)
+    if async_callback_register_not_known_pattern:
+        async_callback_register_not_known(
+            output,
+            async_callback_register_not_known_pattern.group(1)
+        )
+        return
+    
+    subprogram_exit_register_not_scalar_pattern = re.search(r"At subprogram exit the register R0 is not a scalar value \((.*?)\)", error)
+    if subprogram_exit_register_not_scalar_pattern:
+        subprogram_exit_register_not_scalar(
+            output,
+            subprogram_exit_register_not_scalar_pattern.group(1)
+        )
+        return
+    
+    program_exit_register_not_known_pattern = re.search(r"At program exit the register R0 is not a known value \((.*?)\)", error)
+    if program_exit_register_not_known_pattern:
+        program_exit_register_not_known(
+            output,
+            program_exit_register_not_known_pattern.group(1)
+        )
+        return
+    
+    back_edge_pattern = re.search(r"back-edge from insn (\d+) to (\d+)", error)
+    if back_edge_pattern:
+        back_edge(
+            output,
+            int(back_edge_pattern.group(1)),
+            int(back_edge_pattern.group(2))
+        )
+        return
+    
+    unreachable_insn_pattern = re.search(r"unreachable insn (\d+)", error)
+    if unreachable_insn_pattern:
+        unreachable_insn(
+            output,
+            int(unreachable_insn_pattern.group(1))
+        )
+        return
+    
+
+    infinite_loop_detected_pattern = re.search(r"infinite loop detected at insn (\d+)", error)
+    if infinite_loop_detected_pattern:
+        infinite_loop_detected(
+            output,
+            int(infinite_loop_detected_pattern.group(1))
+        )
+        return
+    
+    same_insn_different_pointers_pattern = re.search(r"same insn cannot be used with different pointers", error)
+    if same_insn_different_pointers_pattern:
+        same_insn_different_pointers(
+            output
+        )
+        return
+
+    bpf_program_too_large_pattern = re.search(r"BPF program is too large. Processed (\d+) insn", error)
+    if bpf_program_too_large_pattern:
+        bpf_program_too_large(
+            output,
+            int(bpf_program_too_large_pattern.group(1))
+        )
+        return
+
+
     not_found(error)

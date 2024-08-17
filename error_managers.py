@@ -762,4 +762,160 @@ def pointer_arithmetic_with_operator(output, reg_num, operator):
         if s.startswith(';'):
             print_error(f"{operator} prohibited in pointer arithmetic", location=s, appendix=appendix)
             return
+        
+def pointer_operation_prohibited(output, reg_num, operation):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Combining two pointers is allowed only by using subtraction", location=s)
+            return
 
+def pointer_arithmetic_prohibited(output, reg_num):
+    appendix = "Those might be negation (BPF_NEG) or in-place byte operation (BPF_END)"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot use a register of type pointer as destination of single register operations", location=s, appendix=appendix)
+            return
+
+def sign_extension_pointer(output, reg_num):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot cast 8, 16, 32 bit pointer to 64 bit", location=s)
+            return
+
+def partial_copy_of_pointer(output, reg_num):
+    appendix= "This would lead to a partial copy of the pointer"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Cannot cast pointer into a smaller size register", location=s, appendix=appendix)
+            return
+
+def div_by_zero(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error("Division by zero not allowed", location=s)
+            return
+
+def invalid_shift(output, shift_value):
+    appendix = "Shift must be >= 0 and < of the size of the register"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid shift operation of {shift_value}", location=s, appendix=appendix)
+            return
+
+def pointer_comparison_prohibited(output, reg_num):
+    appendix = "It's only allowed for packet pointers"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Comparison between two pointer is not allowed", location=s, appendix=appendix)
+            return
+
+def bpf_ld_instructions_not_allowed(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Program type doesn't allow this operations: they can only appear when the context is a socket buffer", location=s)
+            return
+
+def leaks_addr_as_return_value(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error("Program cannot return pointer value", location=s)
+            return
+
+def async_callback_register_not_known(output, type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"In async callback the return value must be a scalar, instead found {get_type(type)}", location=s)
+            return
+
+def subprogram_exit_register_not_scalar(output, value_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Subprogram cannot return {get_type(value_type)}, expected scalar value", location=s)
+            return
+
+def program_exit_register_not_known(output, value_type):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Program cannot return {get_type(value_type)}, expected scalar value", location=s)
+            return
+
+def back_edge(output, from_insn, to_insn):
+    from_line = False
+    to_line = False
+    for s in reversed(output):
+        if s.startswith(f"{from_insn}: "):
+            from_line = True
+        if s.startswith(f"{to_insn}: "):
+            to_line = True
+        if from_line == True and s.startswith(';'):
+            from_line = s
+        if to_line == True and s.startswith(';'):
+            to_line = s
+
+    appendix = "Jumping from\n"
+
+    n_line_from = from_insn.split(';')[1].strip('<>')
+    code_from = from_insn.split(';')[2].strip()
+    appendix += f"   {n_line_from} | {code_from}\n"
+
+    appendix += "to\n"    
+
+    n_line_from = from_insn.split(';')[1].strip('<>')
+    code_from = from_insn.split(';')[2].strip()
+    appendix += f"   {n_line_from} | {code_from}\n"
+
+    appendix += "is not allowed"    
+
+    print_error(f"Back jump not allowed in BPF program", appendix=appendix)
+
+def unreachable_insn(output, insn_num):
+    found = False
+    for s in reversed(output):
+        if s.startswith(f"{insn_num}: "):
+            found = True
+            continue
+        if found and s.startswith(';'):
+            print_error(f"unreachable code not allowed in BPF program", location=s)
+            return
+        
+def infinite_loop_detected(output, insn_num):
+    found_insn = False
+    line = None
+
+    for s in reversed(output):
+         # store the first occurence of C line
+        if line == None and s.startswith(';'):
+            line = s
+        # match the insn lines and see if they can match the insn_num
+        insn_line_pattern = re.search(r"(\d+): (.*?)", s)
+        if insn_line_pattern:
+            # the target insn is later in the output, continue
+            if int(insn_line_pattern.group(1)) > insn_num:
+                continue
+            # the target is found, now we look for the first C line
+            elif int(insn_line_pattern.group(1)) == insn_num:
+                found_insn = True
+            # the target cannot be found (the insn num is strictly decreasing)
+            # using the first occurence of c line
+            else: 
+                break
+        # we look for the first C line
+        if found_insn and s.startswith(';'):
+            line = s
+            break
+
+    suggestion = "You may add #pragma unroll before the for loop line"
+    print_error(f"Infinite loop detected", location=line, suggestion=suggestion)
+
+def same_insn_different_pointers(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error("Load or store instruction into register found mismatched pointer types", location=s)
+            return
+
+def bpf_program_too_large(output, insn_count):
+    appendix = "A loop may be present in the program"
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Maximum number of instructions is 1,000,000, processed {insn_count}", location=s, appendix=appendix)
+            return
