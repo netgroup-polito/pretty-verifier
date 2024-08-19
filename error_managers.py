@@ -37,7 +37,11 @@ def type_mismatch(output, reg, type, expected):
     expecteds = expected.split(", ")
     for s in reversed(output):
         if s.startswith(';'):
-            value = s.split("(")[1][:-1].split(",")[int(reg)-1]
+            try:
+                value = s.split("(")[1][:-1].split(",")[int(reg)-1]
+            except (IndexError, ValueError) as e:
+                value = ""
+
             if len(expecteds)>1:
                 expected_types = f"{get_type(expecteds[0])}"
                 for e in expecteds[1:]:
@@ -191,7 +195,7 @@ def __check_mem_access_check(output, line):
         )
         return
 
-    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, key_size=(\d+) off=(\d+) size=(\d+)", line)
+    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, value_size=(\d+) off=(\d+) size=(\d+)", line)
     if invalid_accesss_to_map_value_pattern:
         invalid_accesss_to_map_value(
             output,
@@ -209,7 +213,7 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_packet_pattern.group(2)),
         )
         return
-    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, key_size=(\d+) off=(\d+) size=(\d+)", line)
+    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, mem_size=(\d+) off=(\d+) size=(\d+)", line)
     if invalid_accesss_to_mem_region_pattern:
         invalid_accesss_to_mem_region(
             output,
@@ -219,13 +223,13 @@ def __check_mem_access_check(output, line):
         )
         return
 def min_value_is_outside_mem_range(output):
-    line = output.pop()
+    line = output.pop(-3)
     __check_mem_access_check(output, line)
 def max_value_is_outside_mem_range(output):
-    line = output.pop()
+    line = output.pop(-3)
     __check_mem_access_check(output, line)
 def offset_outside_packet(output):
-    line = output.pop()
+    line = output.pop(-3)
     __check_mem_access_check(output, line)
 # probably not testable        
 
