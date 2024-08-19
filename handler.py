@@ -10,7 +10,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
 
     invalid_variable_offset_read_from_stack_pattern = re.compile(r'invalid variable-offset(.*?) stack R(\d+) var_off=(.*?) size=(\d+)')
     if invalid_variable_offset_read_from_stack_pattern.match(error):
-        invalid_variable_offset_read_from_stack_pattern(output)
+        invalid_variable_offset_read_from_stack(output)
         return
     
     type_mismatch_pattern = re.search(r"R(\d+) type=(.*?) expected=(.*)", error)
