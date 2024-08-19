@@ -17,7 +17,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
     if type_mismatch_pattern:
         type_mismatch(
             output = output, 
-            reg = type_mismatch_pattern.group(1),
+            reg = int(type_mismatch_pattern.group(1)),
             type = type_mismatch_pattern.group(2), 
             expected = type_mismatch_pattern.group(3)
         )
@@ -27,7 +27,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
     if unreleased_reference_pattern:
         unreleased_reference(
             output = output, 
-            id = unreleased_reference_pattern.group(1),
+            id = int(unreleased_reference_pattern.group(1)),
             alloc_insn= unreleased_reference_pattern.group(2), 
         )
         return
@@ -39,7 +39,7 @@ def handle_error(output_raw, c_source_file, bytecode_file):
 
     reg_not_ok_pattern = re.search(r"R(\d+) !read_ok", error)
     if reg_not_ok_pattern:
-        reg_not_ok(output, reg_not_ok_pattern.group(1))
+        reg_not_ok(output, int(reg_not_ok_pattern.group(1)))
         return
     
 
