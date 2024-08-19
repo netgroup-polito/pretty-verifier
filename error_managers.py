@@ -48,14 +48,9 @@ def type_mismatch(output, reg, type, expected):
 
             print_error(f"Wrong argument passed to helper function", location=s, appendix=appendix)
             return
-        
-def pointer_arithmetic_prohibited(output, reg, type):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Cannot modify variable containing {get_type(type)}", location=s)
-            return 
+    
 
-def max_value_outside_memory_range(output):
+def invalid_variable_offset_read_from_stack(output):
     for s in reversed(output):
         if s.startswith(';'):
             print_error("Accessing address outside checked memory range", s)
@@ -90,12 +85,6 @@ def reg_not_ok(output, register):
 
             print_error("Accessing uninitialized value", s, appendix=appendix)
             return
-
-def invalid_mem_access(output, reg, type):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Cannot access to possible nullable {get_type(type)}", location=s)
-            return 
 
 # todo should add suggestion on how to turn on jit     
 def jit_required_for_kfunc(output):
@@ -331,6 +320,7 @@ def rd_leaks_addr_into_map(output):
             return 
         
 def invalid_mem_access_null_ptr_to_mem(output, type):
+    suggestion = None
     type_string = get_type(type)
     if type_string.startswith("read only "):
         suggestion = "Add a null check to reference before accessing it"
@@ -487,13 +477,7 @@ def write_into_map_forbidden(output):
         if s.startswith(';'):
             print_error(f"Cannot write into map in read only program", location=s)
             return
-        
-def unreleased_reference(output):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Reference is not released", location=s)
-            return
-        
+
 def func_only_supported_for_fentry(output, func):
     for s in reversed(output):
         if s.startswith(';'):
@@ -734,7 +718,7 @@ def pointer_arithmetic_null_check(output, reg_num, value_type):
 def pointer_arithmetic_prohibited(output, reg_num, value_type):
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Pointer arithmetic on {get_type(value_type)} prohibited", location=s)
+            print_error(f"Cannot modify value: pointer arithmetic on {get_type(value_type)} prohibited", location=s)
             return
         
 def subtract_pointer_from_scalar(output, reg_num):
@@ -769,7 +753,7 @@ def pointer_operation_prohibited(output, reg_num, operation):
             print_error(f"Combining two pointers is allowed only by using subtraction", location=s)
             return
 
-def pointer_arithmetic_prohibited(output, reg_num):
+def pointer_arithmetic_prohibited_single_reg(output, reg_num):
     appendix = "Those might be negation (BPF_NEG) or in-place byte operation (BPF_END)"
     for s in reversed(output):
         if s.startswith(';'):

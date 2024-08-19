@@ -8,15 +8,9 @@ def handle_error(output_raw, c_source_file, bytecode_file):
     output = add_line_number(output_raw, c_source_file)
     bytecode = get_bytecode(bytecode_file)
 
-
-    max_value_outside_memory_range_pattern = re.compile(r"R(\d+) max value is outside of the allowed memory range")
-    if max_value_outside_memory_range_pattern.match(error):
-        max_value_outside_memory_range(output)
-        return
-    
     invalid_variable_offset_read_from_stack_pattern = re.compile(r'invalid variable-offset(.*?) stack R(\d+) var_off=(.*?) size=(\d+)')
     if invalid_variable_offset_read_from_stack_pattern.match(error):
-        max_value_outside_memory_range(output)
+        invalid_variable_offset_read_from_stack_pattern(output)
         return
     
     type_mismatch_pattern = re.search(r"R(\d+) type=(.*?) expected=(.*)", error)
@@ -38,15 +32,6 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         )
         return
     
-    pointer_arithmeti_prohibited_pattern = re.search(r"R(\d+) pointer arithmetic on (.*?) prohibited", error)
-    if pointer_arithmeti_prohibited_pattern:
-        pointer_arithmetic_prohibited(
-            output = output,
-            reg = pointer_arithmeti_prohibited_pattern.group(1),
-            type = pointer_arithmeti_prohibited_pattern.group(2)
-        )
-        return
-    
     gpl_delcaration_missing_pattern = re.compile(r"cannot call GPL-restricted function from non-GPL compatible program")
     if gpl_delcaration_missing_pattern.match(error):
         gpl_delcaration_missing()
@@ -57,14 +42,6 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         reg_not_ok(output, reg_not_ok_pattern.group(1))
         return
     
-    invaalid_mem_access_pattern = re.search(r"R(\d+) invalid mem access '(.*?)'", error)
-    if invaalid_mem_access_pattern:
-        invalid_mem_access(
-            output = output,
-            reg = invaalid_mem_access_pattern.group(1),
-            type = invaalid_mem_access_pattern.group(2)
-        )
-        return
 
     jit_required_for_kfunc_pattern = re.compile(r"JIT is required for calling kernel function")
     if jit_required_for_kfunc_pattern.match(error):
@@ -432,10 +409,6 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         write_into_map_forbidden(output)
         return
     
-    unreleased_reference_pattern = re.search(r"Unreleased reference id=(\d+) alloc_insn=(\d+)", error)
-    if unreleased_reference_pattern:
-        unreleased_reference(output)
-        return
 
     func_only_supported_for_fentry_pattern = re.search(r"func (.*?)#(\d+) supported only for fentry/fexit/fmod_ret programs", error)
     if func_only_supported_for_fentry_pattern:
@@ -796,11 +769,11 @@ def handle_error(output_raw, c_source_file, bytecode_file):
         )
         return
     
-    pointer_arithmetic_prohibited_pattern = re.search(r"R(\d+) pointer arithmetic prohibited", error)
-    if pointer_arithmetic_prohibited_pattern:
-        pointer_arithmetic_prohibited(
+    pointer_arithmetic_prohibited_single_reg_pattern = re.search(r"R(\d+) pointer arithmetic prohibited", error)
+    if pointer_arithmetic_prohibited_single_reg_pattern:
+        pointer_arithmetic_prohibited_single_reg(
             output,
-            int(pointer_arithmetic_prohibited_pattern.group(1))
+            int(pointer_arithmetic_prohibited_single_reg_pattern.group(1))
         )
         return
     
