@@ -6,7 +6,10 @@ from handler import handle_error
 
 def process_input(c_source_file, bytecode_file):
     verifier_log = []
-    processsing = False
+    #processsing = False
+    # maybe needed for some output
+    processsing = True
+    
     for line in sys.stdin:
         line = line.strip()
         print(line)

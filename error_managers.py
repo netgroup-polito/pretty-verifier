@@ -109,10 +109,8 @@ def kfunc_require_gpl_program(output):
     suggestion = "You can add\n"+\
         f"   char LICENSE[] SEC(\"license\") = \"Dual BSD/GPL\";\n"+\
         f"at the end of the file"
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Kernel function need to be called from GPL compatible program", location=s, suggestion=suggestion)
-            return 
+    print_error(f"Kernel function need to be called from GPL compatible program", suggestion=suggestion)
+    return 
 
 def too_many_kernel_functions():
     appendix = "The maximum number is 256"

@@ -3,6 +3,7 @@ from utils import add_line_number, get_bytecode
 import re
 
 def handle_error(output_raw, c_source_file, bytecode_file):
+    
     error = output_raw[-2]
 
     output = add_line_number(output_raw, c_source_file)
@@ -179,14 +180,15 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             invalid_buffer_access_pattern.group(2)
         )    
         return
-    '''
-    invalid_variable_buffer_offset_pattern = re.search(r"R(\d+) invalid (.*?) buffer access: off=(\d+), size=(\d+)", error)
-    if invalid_variable_buffer_offset_pattern:
-        invalid_variable_buffer_offset(
-            output,
+        
+    
+    # invalid_variable_buffer_offset_pattern = re.search(r"R(\d+) invalid (.*?) buffer access: off=(\d+), size=(\d+)", error)
+    # if invalid_variable_buffer_offset_pattern:
+    #    invalid_variable_buffer_offset(
+    #        output,   
+    #
+    # )    
 
-        )    
-    '''
 
     map_invalid_negative_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
     if map_invalid_negative_access_pattern:
