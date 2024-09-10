@@ -30,8 +30,8 @@ class BPFTestCase:
 
         return real_output[start:end]
     
-    def validate_output(self, expected_output, output):
-        return expected_output in output
+    def validate_output(self, output):
+        return self.expected_output in output
     
 
     def run_test(self, directory):
