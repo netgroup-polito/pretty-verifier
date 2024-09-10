@@ -1,0 +1,198 @@
+import subprocess
+
+class BPFTestCase:
+    def __init__(self, function_name, expected_output=None, bpf_file=None):
+ 
+        self.function_name = function_name
+        if bpf_file:
+            self.bpf_file = bpf_file
+        else:
+            self.bpf_file = function_name
+        self.expected_output = expected_output
+
+
+    def run_command(self, directory):
+
+        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | ./pretty_verifier -c {directory}/{self.bpf_file}.bpf.c"
+        try:
+            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            return result.stdout 
+        except subprocess.CalledProcessError as e:
+            return None
+
+    def validate_output(self, real_output):
+        for ro in real_output:
+            return ro == self.expected_output
+        return False
+    
+
+    def run_test(self, directory):
+
+        #if no expected output is pased the test is not performed
+        if self.expected_output == None:
+            return
+
+        print(f"Testing {self.function_name}...")
+
+        real_output = self.run_command(directory)
+
+        if real_output is None:
+            raise AssertionError(f"Error in running {self.function_name}")
+
+        if not self.validate_output(real_output):
+            raise AssertionError(f"Test of function {self.function_name} failed: expected '{self.expected_output}', got '{real_output}'")
+
+        print(f"Test of function {self.function_name} passed")
+
+
+class BPFTestSuite:
+    def __init__(self, test_cases_directory):
+        self.test_cases = []
+        self.test_cases_directory = test_cases_directory
+
+    def add_test_case(self, function_name, expected_output, bpf_file=None):
+
+        self.test_cases.append(BPFTestCase(function_name, expected_output))
+
+    def run_all_tests(self):
+
+        for test_case in self.test_cases:
+            try:
+                test_case.run_test(self.test_cases_directory)
+            except AssertionError as e:
+                error = e
+                break
+        if error:
+            raise e
+
+
+if __name__ == "__main__":
+
+    test_suite = BPFTestSuite("../ebpf-codebase/not-working/generated")
+
+    test_suite.add_test_case("invalid_variable_offset_read_from_stack", "error: Accessing address outside checked memory range")
+    test_suite.add_test_case("invalid_size_of_register_spill", "error: Invalid size of register saved in the stack")
+    test_suite.add_test_case("invalid_bpf_context_access", "error: Invalid access to context parameter")
+    test_suite.add_test_case("type_mismatch", "error: Wrong argument passed to helper function")
+    test_suite.add_test_case("unreleased_reference", "error: Reference must be released before exiting")
+    test_suite.add_test_case("gpl_delcaration_missing", "error: GPL declaration missing")
+    test_suite.add_test_case("reg_not_ok", "error: Function must not have empty body")
+    test_suite.add_test_case("jit_required_for_kfunc")
+    test_suite.add_test_case("jit_not_supporting_kfunc")
+    test_suite.add_test_case("kfunc_require_gpl_program", "error: Kernel function need to be called from GPL compatible program")
+    test_suite.add_test_case("too_many_kernel_functions")
+    test_suite.add_test_case("not_bpf_capable")
+    test_suite.add_test_case("jump_out_of_range_kfunc")
+    test_suite.add_test_case("last_insn_not_exit_jmp")
+    test_suite.add_test_case("max_value_is_outside_mem_range", 
+                             "error: Invalid access to memory: MAP VALUE of size 1B and offset of 16B in 16B of memory",
+                             bpf_file="max_value_is_outside_map_value")    
+    test_suite.add_test_case("min_value_is_outside_mem_range", 
+                             "error: Invalid access to memory: MAP VALUE of size 1B and offset of -8B in 16B of memory",
+                             bpf_file="min_value_is_outside_map_value")
+    test_suite.add_test_case("offset_outside_packet", "error: Invalid access to memory: PACKET of size 1B and offset of 0B in 0B of memory")
+    test_suite.add_test_case("min_value_is_negative")
+    test_suite.add_test_case("check_ptr_off_reg")
+    test_suite.add_test_case("invalid_access_to_flow_keys")
+    test_suite.add_test_case("invalid_network_packet_access")
+    test_suite.add_test_case("misaligned_access")
+    test_suite.add_test_case("stack_frames_exceeded")
+    test_suite.add_test_case("tail_calls_not_allowed_if_frame_size_exceeded")
+    test_suite.add_test_case("combined_stack_size_exceeded")
+    test_suite.add_test_case("invalid_buffer_access")
+    test_suite.add_test_case("map_invalid_negative_access")
+    test_suite.add_test_case("map_only_read_access")
+    test_suite.add_test_case("invalid_unbounded_valiable_offset")
+    test_suite.add_test_case("write_to_change_key_not_allowed")
+    test_suite.add_test_case("rd_leaks_addr_into_map")
+    test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem")
+    test_suite.add_test_case("cannot_write_into_type")
+    test_suite.add_test_case("rd_leaks_addr_into_mem")
+    test_suite.add_test_case("rd_leaks_addr_into_ctx")
+    test_suite.add_test_case("cannot_write_into_packet")
+    test_suite.add_test_case("rd_leaks_addr_into_packet")
+    test_suite.add_test_case("rd_leaks_addr_into_flow_keys")
+    test_suite.add_test_case("atomic_stores_into_type_not_allowed")
+    test_suite.add_test_case("invalid_read_from_stack")
+    test_suite.add_test_case("min_value_is_negative_2")
+    test_suite.add_test_case("unbounded_mem_access")
+    test_suite.add_test_case("map_has_to_have_BTF")
+    test_suite.add_test_case("dynptr_has_to_be_uninit")
+    test_suite.add_test_case("expected_initialized_dynptr")
+    test_suite.add_test_case("expected_dynptr_of_type_help_fun")
+    test_suite.add_test_case("expected_uninitialized_iter")
+    test_suite.add_test_case("expected_initialized_iter")
+    test_suite.add_test_case("possibly_null_pointer_to_helper_fun")
+    test_suite.add_test_case("rd_of_type_but_expected")
+    test_suite.add_test_case("helper_access_to_packet_not_allowed")
+    test_suite.add_test_case("rd_not_point_to_readonly_map")
+    test_suite.add_test_case("cannot_pass_map_type_into_func")
+    test_suite.add_test_case("cannot_return_stack_pointer")
+    test_suite.add_test_case("r0_not_scalar")
+    test_suite.add_test_case("verbose_invalid_scalar")
+    test_suite.add_test_case("write_into_map_forbidden")
+    test_suite.add_test_case("func_only_supported_for_fentry")
+    test_suite.add_test_case("func_not_supported_for_prog_type")
+    test_suite.add_test_case("invalid_func")
+    test_suite.add_test_case("unknown_func")
+    test_suite.add_test_case("sleep_called_in_non_sleep_prog")
+    test_suite.add_test_case("tail_call_lead_to_leak")
+    test_suite.add_test_case("invalid_return_type")
+    test_suite.add_test_case("unknown_return_type")
+    test_suite.add_test_case("kernel_fun_pointer_not_supported")
+    test_suite.add_test_case("arg_pointer_must_point_to_scalar")
+    test_suite.add_test_case("kernel_fun_expected_pointer")
+    test_suite.add_test_case("function_has_more_args")
+    test_suite.add_test_case("register_not_scalar")
+    test_suite.add_test_case("possibly_null_pointer_passed")
+    test_suite.add_test_case("arg_expected_allocated_pointer")
+    test_suite.add_test_case("arg_expected_pointer_to_ctx")
+    test_suite.add_test_case("arg_expected_pointer_to_stack")
+    test_suite.add_test_case("arg_is_expected")
+    test_suite.add_test_case("arg_reference_type")
+    test_suite.add_test_case("len_pair_lead_to_invalid_mem_access")
+    test_suite.add_test_case("expected_pointer_to_func")
+    test_suite.add_test_case("program_must_be_sleepable")
+    test_suite.add_test_case("kernel_function_unhandled_dynamic_return_type")
+    test_suite.add_test_case("kernel_function_pointer_type")
+    test_suite.add_test_case("math_between_pointer")
+    test_suite.add_test_case("pointer_offset_not_allowed")
+    test_suite.add_test_case("value_out_of_bounds")
+    test_suite.add_test_case("reason_bounds")
+    test_suite.add_test_case("reason_type")
+    test_suite.add_test_case("reason_paths")
+    test_suite.add_test_case("reason_limit")
+    test_suite.add_test_case("reason_stack")
+    test_suite.add_test_case("pointer_arithmetic_out_of_range")
+    test_suite.add_test_case("bit32_pointer_arithmetic_prohibited")
+    test_suite.add_test_case("pointer_arithmetic_null_check")
+    test_suite.add_test_case("pointer_arithmetic_prohibited")
+    test_suite.add_test_case("subtract_pointer_from_scalar")
+    test_suite.add_test_case("subtraction_from_stack_pointer")
+    test_suite.add_test_case("bitwise_operator_on_pointer")
+    test_suite.add_test_case("pointer_arithmetic_with_operator")
+    test_suite.add_test_case("pointer_operation_prohibited")
+    test_suite.add_test_case("pointer_arithmetic_prohibited_single_reg")
+    test_suite.add_test_case("sign_extension_pointer")
+    test_suite.add_test_case("partial_copy_of_pointer")
+    test_suite.add_test_case("div_by_zero")
+    test_suite.add_test_case("invalid_shift")
+    test_suite.add_test_case("pointer_comparison_prohibited")
+    test_suite.add_test_case("bpf_ld_instructions_not_allowed")
+    test_suite.add_test_case("leaks_addr_as_return_value")
+    test_suite.add_test_case("async_callback_register_not_known")
+    test_suite.add_test_case("subprogram_exit_register_not_scalar")
+    test_suite.add_test_case("program_exit_register_not_known")
+    test_suite.add_test_case("back_edge")
+    test_suite.add_test_case("unreachable_insn")
+    test_suite.add_test_case("infinite_loop_detected")
+    test_suite.add_test_case("same_insn_different_pointers")
+    test_suite.add_test_case("bpf_program_too_large")
+
+
+
+    
+    try:
+        test_suite.run_all_tests()
+    except AssertionError as e:
+        print(e)
