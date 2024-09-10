@@ -63,7 +63,7 @@ class BPFTestSuite:
                 error = e
                 break
         if error:
-            raise e
+            raise error
 
 
 if __name__ == "__main__":
