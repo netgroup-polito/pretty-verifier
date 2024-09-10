@@ -13,7 +13,8 @@ class BPFTestCase:
 
     def run_command(self, directory):
 
-        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | ./pretty_verifier -c {directory}/{self.bpf_file}.bpf.c"
+        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
+        print(command)
         try:
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
             return result.stdout 
