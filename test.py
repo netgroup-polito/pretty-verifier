@@ -50,9 +50,9 @@ class BPFTestSuite:
         self.test_cases = []
         self.test_cases_directory = test_cases_directory
 
-    def add_test_case(self, function_name, expected_output, bpf_file=None):
+    def add_test_case(self, function_name, expected_output=None, bpf_file=None):
 
-        self.test_cases.append(BPFTestCase(function_name, expected_output))
+        self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file))
 
     def run_all_tests(self):
 
