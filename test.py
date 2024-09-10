@@ -21,10 +21,17 @@ class BPFTestCase:
         except subprocess.CalledProcessError as e:
             return None
 
-    def validate_output(self, real_output):
-        for ro in real_output:
-            return ro == self.expected_output
-        return False
+    def trim_output(self, real_output):
+
+        start = real_output.find("#######################\
+                                            ## Prettier Verifier ##\
+                                            #######################\n")
+        end = real_output.find("\n\n")
+
+        return real_output[start:end]
+    
+    def validate_output(self, expected_output, output):
+        return expected_output in output
     
 
     def run_test(self, directory):
