@@ -54,7 +54,7 @@ def get_type(type):
 
     ret_val = 'not managed pointer'
     match type:
-        case: "?":
+        case "?":
             ret_val = "not initialized"
         case "scalar":
             ret_val = "scalar value (not a pointer)"
