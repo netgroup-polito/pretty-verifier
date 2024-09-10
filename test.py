@@ -47,7 +47,9 @@ class BPFTestCase:
         if real_output is None:
             raise AssertionError(f"Error in running {self.function_name}")
 
-        if not self.validate_output(real_output):
+        output = self.trim_output(real_output)
+
+        if not self.validate_output(output):
             raise AssertionError(f"Test of function {self.function_name} failed: expected '{self.expected_output}', got '{real_output}'")
 
         print(f"Test of function {self.function_name} passed")
