@@ -5,8 +5,11 @@ import re
 def handle_error(output_raw, c_source_file, bytecode_file):
     
     error = output_raw[-2]
-
-    output = add_line_number(output_raw, c_source_file)
+    try: 
+        output = add_line_number(output_raw, c_source_file)
+    except:
+        output = output_raw
+        print("WARNING: C File modified after compiling, recompile to have the line number\n")
     bytecode = get_bytecode(bytecode_file)
 
     invalid_variable_offset_read_from_stack_pattern = re.compile(r'invalid variable-offset(.*?) stack R(\d+) var_off=(.*?) size=(\d+)')
@@ -899,6 +902,16 @@ def handle_error(output_raw, c_source_file, bytecode_file):
             output,
             int(bpf_program_too_large_pattern.group(1))
         )
+        return
+
+    invalid_size_of_register_spill_pattern = re.compile(r'invalid size of register spill')
+    if invalid_size_of_register_spill_pattern.match(error):
+        invalid_size_of_register_spill(output)
+        return
+
+    invalid_bpf_context_access_pattern = re.search(r'invalid bpf_context access off=(\d+) size=(\d+)', error)
+    if invalid_bpf_context_access_pattern:
+        invalid_bpf_context_access(output)
         return
 
 

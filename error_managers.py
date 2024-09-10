@@ -5,6 +5,7 @@ def not_found(error):
     print_error(f"Error not managed -> {error}")
         
 def get_type(type):
+
     or_null = False
     if type.endswith("_or_null"):
         or_null = True
@@ -15,21 +16,104 @@ def get_type(type):
         rdonly = True
         type = type[7:]
 
+        rdonly = False
+    if type.startswith("rdonly_"):
+        rdonly = True
+        type = type[7:]
+
+    ringbuf = False
+    if type.startswith("ringbuf_"):
+        ringbuf = True
+        type = type[8:] 
+
+    user = False
+    if type.startswith("user_"):
+        user = True
+        type = type[5:]
+
+    percpu = False
+    if type.startswith("percpu_"):
+        percpu = True
+        type = type[7:]
+
+    rcu = False
+    if type.startswith("rcu_"):
+        rcu = True
+        type = type[4:]
+
+    untrusted = False
+    if type.startswith("untrusted_"):
+        untrusted = True
+        type = type[10:]
+
+    trusted = False
+    if type.startswith("trusted_"):
+        trusted = True
+        type = type[8:]
+    
+
     ret_val = 'not managed pointer'
     match type:
+        case: "?":
+            ret_val = "not initialized"
+        case "scalar":
+            ret_val = "scalar value (not a pointer)"
+        case "ctx":
+            ret_val = "pointer to eBPF context"
         case "map_ptr":
             ret_val = "pointer to map"
         case "map_value":
             ret_val = "pointer to map element value"
         case "fp":
-            ret_val = "pointer to locally defined data"
+            ret_val = "pointer to locally defined data (frame pointer)"
+        case "pkt":
+            ret_val = "pointer to start of XDP packet"
+        case "pkt_meta":
+            ret_val = "pointer to packet metadata"
         case "pkt_end":
             ret_val = "pointer to end of XDP packet"
+        case "flow_keys":
+            ret_val = "pointer to flow keys structure"
+        case "sock":
+            ret_val = "pointer to socket structure"
+        case "sock_common":
+            ret_val = "pointer to common socket fields"
+        case "tcp_sock":
+            ret_val = "pointer to TCP socket structure"
+        case "tp_buffer":
+            ret_val = "pointer to tracepoint buffer"
+        case "xdp_sock":
+            ret_val = "pointer to XDP socket"
+        case "ptr_":
+            ret_val = "pointer to BTF ID"
+        case "mem":
+            ret_val = "pointer to memory"
+        case "buf":
+            ret_val = "pointer to buffer"
+        case "func":
+            ret_val = "pointer to function"
+        case "map_key":
+            ret_val = "pointer to map key"
+        case "dynptr_ptr":
+            ret_val = "constant pointer to dynamic pointer"
+
 
     if or_null:
         ret_val += ' not null-checked'
     if rdonly:
         ret_val = f"read only {ret_val}"
+    if ringbuf:
+        ret_val = f"ring buffer {ret_val}"
+    if user:
+        ret_val = f"user-space {ret_val}"
+    if percpu:
+        ret_val = f"per-CPU {ret_val}"
+    if rcu:
+        ret_val = f"RCU-protected {ret_val}"
+    if untrusted:
+        ret_val = f"untrusted {ret_val}"
+    if trusted:
+        ret_val = f"trusted {ret_val}"
     
     return ret_val
         
@@ -147,6 +231,7 @@ def last_insn_not_exit_jmp(output, bytecode):
             return 
     
 def invalid_accesss_to_map_key(output, key_size, offset, size):
+    suggestion = None
     if offset+size > key_size:
         suggestion= "Add a bound check:"+\
         "   offset + size <= key_size must be true"
@@ -156,6 +241,7 @@ def invalid_accesss_to_map_key(output, key_size, offset, size):
             return 
         
 def invalid_accesss_to_map_value(output, value_size, offset, size):
+    suggestion = None
     if offset+size > value_size:
         suggestion= "Add a bound check:"+\
         "   offset + size <= value_size must be true"
@@ -165,6 +251,7 @@ def invalid_accesss_to_map_value(output, value_size, offset, size):
             return 
         
 def invalid_accesss_to_packet(output, mem_size, offset, size):
+    suggestion = None
     if offset+size > mem_size:
         suggestion= "Add a bound check:"+\
         "   offset + size <= mem_size must be true"
@@ -174,6 +261,7 @@ def invalid_accesss_to_packet(output, mem_size, offset, size):
             return 
         
 def invalid_accesss_to_mem_region(output, mem_size, offset, size):
+    suggestion = None
     if offset+size > mem_size:
         suggestion= "Add a bound check:"+\
         "   offset + size <= mem_size must be true"
@@ -183,7 +271,8 @@ def invalid_accesss_to_mem_region(output, mem_size, offset, size):
             return 
         
 def __check_mem_access_check(output, line):
-    invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(\d+) size=(\d+)", line)
+
+    invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_map_key_pattern:
         invalid_accesss_to_map_key(
             output,
@@ -193,7 +282,7 @@ def __check_mem_access_check(output, line):
         )
         return
 
-    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, value_size=(\d+) off=(\d+) size=(\d+)", line)
+    invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, value_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_map_value_pattern:
         invalid_accesss_to_map_value(
             output,
@@ -202,7 +291,7 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_map_value_pattern.group(3)),
         )
         return
-    invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(\d+) size=(\d+), R(\d+)(id=(\d+),off=(\d+),r=(\d+))", line)
+    invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(-?\d+) size=(\d+), R(\d+)\(id=(\d+),off=(-?\d+),r=(\d+)\)", line)
     if invalid_accesss_to_packet_pattern:
         invalid_accesss_to_packet(
             output,
@@ -211,7 +300,7 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_packet_pattern.group(2)),
         )
         return
-    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, mem_size=(\d+) off=(\d+) size=(\d+)", line)
+    invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, mem_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_mem_region_pattern:
         invalid_accesss_to_mem_region(
             output,
@@ -904,4 +993,17 @@ def bpf_program_too_large(output, insn_count):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Maximum number of instructions is 1,000,000, processed {insn_count}", location=s, appendix=appendix)
+            return
+
+def invalid_size_of_register_spill(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error("Invalid size of register saved in the stack", location=s)
+            return
+
+
+def invalid_bpf_context_access(output):
+    for s in reversed(output):
+        if s.startswith(';'):
+            print_error(f"Invalid access to context parameter", location=s)
             return
