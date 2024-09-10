@@ -1,4 +1,5 @@
 import subprocess
+import re
 
 class BPFTestCase:
     def __init__(self, function_name, expected_output=None, bpf_file=None):
@@ -14,7 +15,7 @@ class BPFTestCase:
     def run_command(self, directory):
 
         command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
-        print(command)
+        
         try:
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
             return result.stdout 
@@ -22,13 +23,14 @@ class BPFTestCase:
             return None
 
     def trim_output(self, real_output):
+        real_output = re.sub(r'\033(\[(\d+)m)?', '', real_output)
 
-        start = real_output.find("#######################\
-                                            ## Prettier Verifier ##\
-                                            #######################\n")
-        end = real_output.find("\n\n")
+        starting_string = "#######################\n## Prettier Verifier ##\n#######################\n\n"
+        start = real_output.find(starting_string) + len(starting_string)
 
-        return real_output[start:end]
+        end = real_output[start:].find("\n\n")
+
+        return real_output[start:start+end]
     
     def validate_output(self, output):
         return self.expected_output in output
@@ -48,11 +50,14 @@ class BPFTestCase:
             raise AssertionError(f"Error in running {self.function_name}")
 
         output = self.trim_output(real_output)
+        if not output or output == "":
+            output = real_output
+
 
         if not self.validate_output(output):
-            raise AssertionError(f"Test of function {self.function_name} failed: expected '{self.expected_output}', got '{real_output}'")
+            raise AssertionError(f"Test of function {self.function_name} \033[91mfailed\033[0m: \nexpected '{self.expected_output}', \ngot '{output}'")
 
-        print(f"Test of function {self.function_name} passed")
+        print(f"Test of function {self.function_name} \033[92mpassed\033[0m")
 
 
 class BPFTestSuite:
@@ -65,7 +70,7 @@ class BPFTestSuite:
         self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file))
 
     def run_all_tests(self):
-
+        error = None
         for test_case in self.test_cases:
             try:
                 test_case.run_test(self.test_cases_directory)

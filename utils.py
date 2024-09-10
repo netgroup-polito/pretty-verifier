@@ -5,7 +5,7 @@ def print_error(message, location=None, suggestion=None, appendix=None):
     error_message = f"\n\033[96m#######################\033"+ \
             f"\n\033[96m## Prettier Verifier ##\033\n"+ \
             f"\033[96m#######################\033\n"+ \
-            f"[0m\n\033[91merror\033[0m: "+ \
+            f"\n\033[91merror\033[0m: "+ \
             f"\033[94m{message}\033[0m\n"
 
 
