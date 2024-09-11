@@ -2,13 +2,14 @@ from error_managers import *
 from utils import add_line_number, get_bytecode
 import re
 
-def handle_error(output_raw, c_source_file, bytecode_file):
+def handle_error(output_raw, c_source_files, bytecode_file):
     
     error = output_raw[-2]
     try: 
-        output = add_line_number(output_raw, c_source_file)
-    except:
+        output = add_line_number(output_raw, c_source_files)
+    except e:
         output = output_raw
+        print(e)
         print("WARNING: C File modified after compiling, recompile to have the line number\n")
     bytecode = get_bytecode(bytecode_file)
 

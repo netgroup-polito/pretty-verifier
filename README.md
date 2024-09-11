@@ -23,6 +23,11 @@ Custom C user space program, with `libbpf` (printing to `stdin`)
 ```bash
 ./your_program | python3 path/to/pretty_verifier.py -c your_bpf.c 
 ```
+If your eBPF program is compiled from multiple files, you can add them in the command
+
+```bash
+bpftool prog load your_bpf.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty_verifier.py -c your_bpf.c your_bpf_library.c 
+```
 
 ## Add pretty_verifier alias
 
