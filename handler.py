@@ -7,7 +7,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
     error = output_raw[-2]
     try: 
         output = add_line_number(output_raw, c_source_files)
-    except e:
+    except Exception as e:
         output = output_raw
         print(e)
         print("WARNING: C File modified after compiling, recompile to have the line number\n")
