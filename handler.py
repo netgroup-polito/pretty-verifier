@@ -5,11 +5,14 @@ import re
 def handle_error(output_raw, c_source_files, bytecode_file):
     
     error = output_raw[-2]
+    # managing automatic excalation to debug mode
+    if error.startswith("old state: "):
+        error = output_raw[-4]
     try: 
         output = add_line_number(output_raw, c_source_files)
-    except e:
+    except Exception:
         output = output_raw
-        print(e)
+        print(Exception)
         print("WARNING: C File modified after compiling, recompile to have the line number\n")
     bytecode = get_bytecode(bytecode_file)
 
