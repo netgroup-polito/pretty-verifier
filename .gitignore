@@ -1,7 +1,11 @@
 # Ignora la cartella _pycache_ generata da Python
 __pycache__/
+env/
 
 # Ignora i file temporanei
 *.swp
 *.~
 *.log
+
+#Ignore files
+.coverage
