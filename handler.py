@@ -660,7 +660,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
         )
         return
     #todelete ce
-    '''
+   
     pointer_offset_not_allowed_pattern = re.search(r"(.*?) pointer offset (-?\d+) is not allowed", error)
     if pointer_offset_not_allowed_pattern:
         pointer_offset_not_allowed(
@@ -669,7 +669,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             int(pointer_offset_not_allowed_pattern.group(2))
         )
         return
-    '''
+
     value_out_of_bounds_pattern = re.search(r"value (-?\d+) makes (.*?) pointer be out of bounds", error)
     if value_out_of_bounds_pattern:
         value_out_of_bounds(
