@@ -175,6 +175,7 @@ def reg_not_ok(output, register):
             return
 
 # todo should add suggestion on how to turn on jit     
+'''
 def jit_required_for_kfunc(output):
     for s in reversed(output):
         if s.startswith(';'):
@@ -187,7 +188,7 @@ def jit_not_supporting_kfunc(output):
         if s.startswith(';'):
             print_error(f"Jit compilation not supporting when calling this kernel function", location=s)
             return 
-
+'''
 #todo suggestion should account for other gpl-compatible programs
 def kfunc_require_gpl_program(output):
     suggestion = "You can add\n"+\
@@ -199,11 +200,11 @@ def kfunc_require_gpl_program(output):
 def too_many_kernel_functions():
     appendix = "The maximum number is 256"
     print_error(f"Number of kernel functions exceeded", appendix=appendix)
-
+'''
 def not_bpf_capable():
     suggestion = "Use \"sudo\" before the call.\n If this error is still presents, you may not have installed all the BPF tools. "
     print_error(f"Not enough permissions", suggestion=suggestion)
-
+'''
 # todo should be tested if multiple funtions are used, 
 # maybe better sticking to the original output
 # check if the error of blank output seen online is caused by bcc
@@ -462,14 +463,14 @@ def atomic_stores_into_type_not_allowed(output, type):
         if s.startswith(';'):
             print_error(f"Cannot store value into {get_type(type)}", location=s)
             return 
-        
+'''        
 def invalid_read_from_stack(output, indirect):
     indirect = indirect == "indirect"
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Invalid read from stack, variable must be initialized")
             return
-
+'''
 def min_value_is_negative_2(output):
     suggestion = "Use unsigned or 'var &= const'"
     for s in reversed(output):
@@ -568,7 +569,7 @@ def write_into_map_forbidden(output):
         if s.startswith(';'):
             print_error(f"Cannot write into map in read only program", location=s)
             return
-
+'''
 def func_only_supported_for_fentry(output, func):
     for s in reversed(output):
         if s.startswith(';'):
@@ -579,7 +580,7 @@ def func_not_supported_for_prog_type(output, func, prog_type):
         if s.startswith(';'):
             print_error(f"Function {func} is not supported for program type {prog_type}", location=s)
             return
-        
+'''       
 def invalid_func(output, func):
     suggestion = "Your kernel is too old or the helper has been compiled out"
     for s in reversed(output):
@@ -593,19 +594,19 @@ def unknown_func(output, func):
         if s.startswith(';'):
             print_error(f"Unknown function {func}", location=s, suggestion=suggestion)
             return
-        
+'''      
 def sleep_called_in_non_sleep_prog(output):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Helper function might sleep in non-sleepable program", location=s)
             return
-        
+'''     
 def tail_call_lead_to_leak(output):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Tail call of helper function would lead to reference leak", location=s)
             return
-
+'''
 def invalid_return_type(output, type, func):
     for s in reversed(output):
         if s.startswith(';'):
@@ -623,7 +624,7 @@ def kernel_fun_pointer_not_supported(output, fun, arg, btf, btf_name):
         if s.startswith(';'):
             print_error(f"Argument n°{arg} of kernel function {fun} has pointer of type {btf} {btf_name} that is not supported", location=s)
             return
-
+'''
 def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
     if void:
         void = f"{void}, "
@@ -639,13 +640,13 @@ def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
             else:
                 print_error(f"Argument n°{arg} has pointer of type {btf} {btf_name} must point to {void}scalar, or struct with scalar", location=s)
             return
-
+'''
 def kernel_fun_expected_pointer(output, fun, arg, btf, btf_name, btf_expected, btf_name_expected):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Argument n°{arg} of kernel function {fun} has pointer of type {btf} {btf_name}, while {btf_expected} {btf_name_expected} is expected", location=s)
             return
-
+'''
 def function_has_more_args(output, func, current_args, max_args):
     for s in reversed(output):
         if s.startswith(';'):
@@ -664,13 +665,13 @@ def possibly_null_pointer_passed(output, arg_num):
         if s.startswith(';'):
             print_error(f"Argument n°{arg_num} of kernel function may be null", location=s, suggestion=suggestion)
             return
-
+'''
 def arg_expected_allocated_pointer(output, arg_num):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Argument n°{arg_num} of kernel function expected pointer to allocated BTF object", location=s)
             return
-
+'''
 
 def arg_expected_pointer_to_ctx(output, arg_num, received_type):
     for s in reversed(output):
@@ -689,7 +690,7 @@ def arg_is_expected(output, arg_num, actual_type, expected_type):
         if s.startswith(';'):
             print_error(f"Argument n°{arg_num} of kernel function is {get_type(actual_type)}, expected {get_type(expected_type)} or socket", location=s)
             return
-
+'''
 def arg_reference_type(output, arg_num, type_name, type_detail, size):
     for s in reversed(output):
         if s.startswith(';'):
@@ -701,7 +702,7 @@ def len_pair_lead_to_invalid_mem_access(output, memory_arg_num, len_arg_num):
         if s.startswith(';'):
             print_error(f"Argument pair n°{memory_arg_num} and n°{len_arg_num} usage lead to invalid memory access", location=s)
             return
-
+'''
 def expected_pointer_to_func(output, arg_num):
     for s in reversed(output):
         if s.startswith(';'):
@@ -725,19 +726,19 @@ def kernel_function_unhandled_dynamic_return_type(output, func_name):
         if s.startswith(';'):
             print_error(f"Kernel function {func_name} has an unhandled dynamic return type", location=s)
             return
-
+'''
 def kernel_function_pointer_type(output, func_name, pointer_type, additional_info):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Kernel function {func_name} returns pointer type {pointer_type} {additional_info} is not supported", location=s)
             return
-
+'''
 def math_between_pointer(output, pointer_type, value):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
             return
-        
+'''      
 def pointer_offset_not_allowed(output, pointer_type, offset):
     for s in reversed(output):
         if s.startswith(';'):
@@ -792,7 +793,7 @@ def pointer_arithmetic_out_of_range(output, reg_num):
         if s.startswith(';'):
             print_error(f"Pointer arithmetic of map value goes out of range", location=s)
             return
-
+'''
 def bit32_pointer_arithmetic_prohibited(output, reg_num):
     for s in reversed(output):
         if s.startswith(';'):
@@ -863,7 +864,7 @@ def partial_copy_of_pointer(output, reg_num):
         if s.startswith(';'):
             print_error(f"Cannot cast pointer into a smaller size register", location=s, appendix=appendix)
             return
-
+'''
 def div_by_zero(output):
     for s in reversed(output):
         if s.startswith(';'):
@@ -876,20 +877,20 @@ def invalid_shift(output, shift_value):
         if s.startswith(';'):
             print_error(f"Invalid shift operation of {shift_value}", location=s, appendix=appendix)
             return
-
+'''
 def pointer_comparison_prohibited(output, reg_num):
     appendix = "It's only allowed for packet pointers"
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Comparison between two pointer is not allowed", location=s, appendix=appendix)
             return
-
+'''
 def bpf_ld_instructions_not_allowed(output):
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Program type doesn't allow this operations: they can only appear when the context is a socket buffer", location=s)
             return
-
+'''
 def leaks_addr_as_return_value(output):
     for s in reversed(output):
         if s.startswith(';'):
