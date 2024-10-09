@@ -738,7 +738,7 @@ def math_between_pointer(output, pointer_type, value):
         if s.startswith(';'):
             print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
             return
-'''      
+      
 def pointer_offset_not_allowed(output, pointer_type, offset):
     for s in reversed(output):
         if s.startswith(';'):
@@ -751,7 +751,7 @@ def math_between_pointer_and_unbounded_register(output, pointer_type):
         if s.startswith(';'):
             print_error(f"Accessing {get_type(pointer_type)} pointer withoun lower bound check", location=s, suggestion=suggestion)
             return
-'''
+
 def value_out_of_bounds(output, value, pointer_type):
     for s in reversed(output):
         if s.startswith(';'):
