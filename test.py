@@ -160,7 +160,8 @@ if __name__ == "__main__":
     test_suite.add_test_case("expected_pointer_to_func")
     test_suite.add_test_case("program_must_be_sleepable")
     test_suite.add_test_case("kernel_function_unhandled_dynamic_return_type")
-    test_suite.add_test_case("math_between_pointer", "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
+    #test_suite.add_test_case("math_between_pointer", "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
+    test_suite.add_test_case("value_out_of_bounds", "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
     test_suite.add_test_case("bit32_pointer_arithmetic_prohibited")
     test_suite.add_test_case("pointer_arithmetic_null_check") #probably not testable since in order to do pointer arithmetic you first need to access memeory
     test_suite.add_test_case("pointer_arithmetic_prohibited")

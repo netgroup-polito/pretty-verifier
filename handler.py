@@ -669,7 +669,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             int(pointer_offset_not_allowed_pattern.group(2))
         )
         return
-    #todelete ce
+    '''
     value_out_of_bounds_pattern = re.search(r"value (-?\d+) makes (.*?) pointer be out of bounds", error)
     if value_out_of_bounds_pattern:
         value_out_of_bounds(
@@ -679,6 +679,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
         )
         return
     #todelete ce
+    '''
     reason_bounds_pattern = re.search(r"R(\d+) has unknown scalar with mixed signed bounds, pointer arithmetic with it prohibited for !root", error)
     if reason_bounds_pattern:
         reason_bounds(
