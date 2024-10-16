@@ -9,7 +9,7 @@ Make pretty the eBPF verifier errors
 
 ## Usage
 
-Always compile your code with clion, using the -g option
+Always compile your code with Clang, using the -g option
 
 Pipe `pretty_verifier.py` when loading the eBPF program.
 
