@@ -126,7 +126,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
     if check_ptr_off_reg_pattern:
         check_ptr_off_reg(output)
         return
-    
+
     invalid_access_to_flow_keys_pattern = re.search(r"invalid access to flow keys off=(\d+) size=(\d+)", error)
     if invalid_access_to_flow_keys_pattern:
         invalid_access_to_flow_keys(
@@ -135,7 +135,9 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             int(invalid_access_to_flow_keys_pattern.group(2))              
         )
         return
+    
 
+    '''
     invalid_network_packet_access_pattern = re.search(r"R(\d+) invalid (.*?) access off=(\d+) size=(\d+)", error)
     if invalid_network_packet_access_pattern:
         invalid_network_packet_access(
@@ -146,6 +148,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             invalid_network_packet_access_pattern.group(4),
         )
         return
+    '''
 
     misaligned_packet_access_pattern = re.search(r"misaligned packet access off (\d+)+(.*?)+(\d+)+(\d+) size (\d+)", error)
     if misaligned_packet_access_pattern:
@@ -198,6 +201,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
     #
     # )    
 
+    '''
     #todelete maybe BTF
     map_invalid_negative_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
     if map_invalid_negative_access_pattern:
@@ -209,11 +213,11 @@ def handle_error(output_raw, c_source_files, bytecode_file):
         return
 
     #todelete maybe BTF
-    map_only_read_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
+    map_only_read_access_pattern = re.search(r"only read from (.*?) is supported", error)
     if map_only_read_access_pattern:
         map_only_read_access(
             output,
-            map_only_read_access_pattern.group(2),
+            map_only_read_access_pattern.group(1),
         )    
         return
 
@@ -224,6 +228,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             invalid_unbounded_valiable_offset_pattern.group(1)
         )    
         return
+    '''
 
     write_to_change_key_not_allowed_pattern = re.search(r"write to change key R(\d+) not allowed", error)
     if write_to_change_key_not_allowed_pattern:
@@ -362,7 +367,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             expected_initialized_iter_pattern.group(2)
             ) 
         return
-    
+    '''
     possibly_null_pointer_to_helper_fun_pattern = re.search(r"Possibly NULL pointer passed to helper arg(\d+)", error)
     if possibly_null_pointer_to_helper_fun_pattern:
         possibly_null_pointer_to_helper_fun(
@@ -379,7 +384,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             rd_of_type_but_expected_pattern.group(3)
             )
         return
-    
+    '''
     helper_access_to_packet_not_allowed_pattern = re.search(r"helper access to the packet is not allowed", error)
     if helper_access_to_packet_not_allowed_pattern:
         helper_access_to_packet_not_allowed(output)
@@ -399,11 +404,12 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             cannot_pass_map_type_into_func_pattern.group(3),
             )
         return
-        
+    '''   
     cannot_return_stack_pointer_pattern = re.compile(r"cannot return stack pointer to the caller")
     if cannot_return_stack_pointer_pattern.match(error):
         cannot_return_stack_pointer(output)
         return
+    '''
 
     r0_not_scalar_pattern = re.compile(r"R0 not a scalar value")
     if r0_not_scalar_pattern.match(error):
@@ -467,14 +473,14 @@ def handle_error(output_raw, c_source_files, bytecode_file):
     if sleep_called_in_non_sleep_prog_pattern:
         sleep_called_in_non_sleep_prog(output)
         return
-    '''
+
     tail_call_lead_to_leak_pattern = re.search(r"tail_call would lead to reference leak", error)
     if tail_call_lead_to_leak_pattern:
         tail_call_lead_to_leak(output)
         return
     
     #todelete btf
-    '''
+
     invalid_return_type_pattern = re.search(r"invalid return type (.*?) of func (.*?)#(\d+)", error)
     if invalid_return_type_pattern:
         invalid_return_type(
@@ -504,7 +510,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             kernel_fun_pointer_not_supported_pattern.group(4)
             )
         return
-    '''
+
     arg_pointer_must_point_to_scalar_pattern = re.search(r"arg#(\d+) pointer type (.*?) (.*?) must point to (.*?)scalar, or struct with scalar", error)
     if arg_pointer_must_point_to_scalar_pattern:
         arg_pointer_must_point_to_scalar(
@@ -515,7 +521,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             arg_pointer_must_point_to_scalar_pattern.group(4)
             )
         return
-    '''
+
     #todelete btf
     kernel_fun_expected_pointer_pattern = re.search(r"kernel function (.*?) args#(\d+) expected pointer to (.*?) (.*?) but R(\d+) has a pointer to (.*?) (.*?)", error)
     if kernel_fun_expected_pointer_pattern:
@@ -622,7 +628,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             int(expected_pointer_to_func_pattern.group(1))
         )
         return
-
+    '''
     program_must_be_sleepable_pattern = re.search(r"program must be sleepable to call sleepable kfunc (.*?)", error)
     if program_must_be_sleepable_pattern:
         program_must_be_sleepable(
@@ -630,7 +636,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             program_must_be_sleepable_pattern.group(1)
         )
         return
-    
+
     kernel_function_unhandled_dynamic_return_type_pattern = re.search(r"kernel function (.*?) unhandled dynamic return type", error)
     if kernel_function_unhandled_dynamic_return_type_pattern:
         kernel_function_unhandled_dynamic_return_type(
@@ -639,7 +645,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
         )
         return
     #todelete btf
-    '''
+
     kernel_function_pointer_type_pattern = re.search(r"kernel function (.*?) returns pointer type (.*?) (.*?) is not supported", error)
     if kernel_function_pointer_type_pattern:
         kernel_function_pointer_type(
@@ -763,7 +769,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             int(subtract_pointer_from_scalar_pattern.group(1))
         )
         return
-
+    '''
     subtraction_from_stack_pointer_pattern = re.search(r"R(\d+) subtraction from stack pointer prohibited", error)
     if subtraction_from_stack_pointer_pattern:
         subtraction_from_stack_pointer(
@@ -771,7 +777,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
             int(subtraction_from_stack_pointer_pattern.group(1))
         )
         return
-    
+    '''
     bitwise_operator_on_pointer_pattern = re.search(r"R(\d+) bitwise operator (.*?) on pointer prohibited", error)
     if bitwise_operator_on_pointer_pattern:
         bitwise_operator_on_pointer(

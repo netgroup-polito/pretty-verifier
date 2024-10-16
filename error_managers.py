@@ -990,7 +990,7 @@ def same_insn_different_pointers(output):
             return
 
 def bpf_program_too_large(output, insn_count):
-    appendix = "A loop may be present in the program"
+    appendix = "An unrolled loop with too many cycles may be present in the program"
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Maximum number of instructions is 1,000,000, processed {insn_count}", location=s, appendix=appendix)
