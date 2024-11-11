@@ -156,7 +156,11 @@ if __name__ == "__main__":
     test_suite.add_test_case("pointer_arithmetic_null_check") #probably not testable since in order to do pointer arithmetic you first need to access memeory
     test_suite.add_test_case("pointer_arithmetic_prohibited")
     test_suite.add_test_case("subtract_pointer_from_scalar", "error: Cannot subtract pointer from scalar")
-    test_suite.add_test_case("bitwise_operator_on_pointer", "error: Bitwise operations (&=) on pointer prohibited")
+    
+    test_suite.add_test_case("bitwise_operator_on_pointer_and", "error: Bitwise operations (AND) on pointer prohibited")
+    test_suite.add_test_case("bitwise_operator_on_pointer_or", "error: Bitwise operations (OR) on pointer prohibited")
+    test_suite.add_test_case("bitwise_operator_on_pointer_xor", "error: Bitwise operations (XOR) on pointer prohibited")
+    
     test_suite.add_test_case("pointer_arithmetic_with_operator")
     test_suite.add_test_case("pointer_operation_prohibited", "error: *= prohibited in pointer arithmetic")
     test_suite.add_test_case("pointer_arithmetic_prohibited_single_reg")

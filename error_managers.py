@@ -827,9 +827,19 @@ def subtraction_from_stack_pointer(output, reg_num):
         
 def bitwise_operator_on_pointer(output, reg_num, operator):
     appendix = "Only addiction and subtraction are allowed"
+    
+    if operator == '&=':
+        displayed_operator = 'AND'
+    elif operator == '|=':
+        displayed_operator = 'OR'
+    elif operator == '^=':
+        displayed_operator = 'XOR'
+    else:
+        displayed_operator = operator
+    
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Bitwise operations ({operator}) on pointer prohibited", location=s, appendix=appendix)
+            print_error(f"Bitwise operations ({displayed_operator}) on pointer prohibited", location=s, appendix=appendix)
             return
 
 def pointer_arithmetic_with_operator(output, reg_num, operator):
