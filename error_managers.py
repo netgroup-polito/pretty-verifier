@@ -588,8 +588,9 @@ def invalid_func(output, func):
             print_error(f"Invalid function {func}", location=s, suggestion=suggestion)
             return
         
-def unknown_func(output, func):
-    suggestion = "Your kernel is too old or the helper has been compiled out"
+def unknown_func(output, func, c_source_files):
+    section_name = get_section_name(c_source_files)
+    suggestion = f"Check if the helper function you are using is compatible with the program type {section_name} at https://man7.org/linux/man-pages/man7/bpf-helpers.7.html.\nOtherwise, your kernel might be too old or the helper has been compiled out."
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Unknown function {func}", location=s, suggestion=suggestion)

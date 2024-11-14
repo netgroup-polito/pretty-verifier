@@ -90,7 +90,10 @@ if __name__ == "__main__":
 
     test_suite.add_test_case("invalid_variable_offset_read_from_stack", "error: Accessing address outside checked memory range")
     test_suite.add_test_case("invalid_size_of_register_spill", "error: Invalid size of register saved in the stack")
-    test_suite.add_test_case("invalid_bpf_context_access", "error: Invalid access to context parameter")
+    
+    test_suite.add_test_case("invalid_bpf_context_access_sk_msg", "error: Invalid access to context parameter")
+    test_suite.add_test_case("invalid_bpf_context_access_socket", "error: Invalid access to context parameter")
+
     test_suite.add_test_case("type_mismatch", "error: Wrong argument passed to helper function")
     test_suite.add_test_case("unreleased_reference", "error: Reference must be released before exiting")
     test_suite.add_test_case("gpl_delcaration_missing", "error: GPL declaration missing")
@@ -141,7 +144,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("func_only_supported_for_fentry")
     test_suite.add_test_case("func_not_supported_for_prog_type")
     test_suite.add_test_case("invalid_func")
-    test_suite.add_test_case("unknown_func")
+    test_suite.add_test_case("unknown_func", "error: Unknown function bpf_ktime_get_coarse_ns")
     test_suite.add_test_case("function_has_more_args")
     test_suite.add_test_case("register_not_scalar")
     test_suite.add_test_case("possibly_null_pointer_passed")

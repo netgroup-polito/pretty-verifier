@@ -463,7 +463,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
     if unknown_func_pattern:
         unknown_func(
             output,
-            unknown_func_pattern.group(1)
+            unknown_func_pattern.group(1), c_source_files
             )
         return
     
