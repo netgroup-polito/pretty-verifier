@@ -940,7 +940,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
 
     invalid_bpf_context_access_pattern = re.search(r'invalid bpf_context access off=(\d+) size=(\d+)', error)
     if invalid_bpf_context_access_pattern:
-        invalid_bpf_context_access(output)
+        invalid_bpf_context_access(output, c_source_files)
         return
 
 

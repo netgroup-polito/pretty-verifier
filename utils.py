@@ -1,4 +1,5 @@
 import subprocess
+import re
 
 def print_error(message, location=None, suggestion=None, appendix=None):
 
@@ -15,12 +16,13 @@ def print_error(message, location=None, suggestion=None, appendix=None):
         file_names = location.split(' in file ')
         file_name = file_names[len(file_names)-1].strip()
         error_message += f"   {n_line} | {code}\n    {' ' * len(n_line)}| in file {file_name}\n"
-    
-    if suggestion!=None:
-        error_message += f"\033[92m{suggestion}\033[0m\n"
 
     if appendix!=None:
         error_message += f"{appendix}\n"
+
+            
+    if suggestion!=None:
+        error_message += f"\n\033[92m{suggestion}\033[0m\n"
 
     print(error_message)
 
@@ -91,3 +93,11 @@ def get_bytecode(bytecode_file):
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return result.stdout.splitlines()
     
+def get_section_name(c_source_files):
+    for c_source_file in c_source_files:
+        with open(c_source_file, 'r') as file:
+            for l in file.readlines():
+                match_pattern = re.search(r"SEC\(\"(.*)\"\)", l)
+                # according to the libbpf docs all the not program related section are the ones related to maps (maps and .maps)
+                if match_pattern and "maps" not in match_pattern.group(1):
+                    return match_pattern.group(1)

@@ -1,4 +1,4 @@
-from utils import print_error
+from utils import print_error, get_section_name
 import re
 
 def not_found(error):
@@ -1013,8 +1013,22 @@ def invalid_size_of_register_spill(output):
             return
 
 
-def invalid_bpf_context_access(output):
+def invalid_bpf_context_access(output, c_source_files):
+    
+    '''
+    section_name = get_section_name(c_source_files)
+    if section_name in ["socket"]:
+        appendix = f"Cannot read or write in the context parameter for the {section_name} program type"
+    elif section_name in ["sk_msg"]:
+        appendix = f"Cannot write in the context parameter for the {section_name} program type"
+    else:
+        appendix = ""
+    '''
+    section_name = get_section_name(c_source_files)
+    appendix = f"Cannot read or write in the context parameter for the {section_name} program type"
+    suggestion = "https://docs.ebpf.io/linux/program-type/ has a detailed table on which fields of the context, for each program type, can be read or written, in the \"Context/Context fields section\"."
+
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Invalid access to context parameter", location=s)
+            print_error(f"Invalid access to context parameter", location=s, appendix=appendix, suggestion=suggestion)
             return
