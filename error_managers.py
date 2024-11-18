@@ -231,83 +231,74 @@ def last_insn_not_exit_jmp(output, bytecode):
             print_error(f"Error using kernel function", location=s, suggestion=suggestion)
             return 
     
-def invalid_accesss_to_map_key(output, key_size, offset, size):
-    suggestion = None
-    if offset+size > key_size:
-        suggestion= "Add a bound check:"+\
-        "   offset + size <= key_size must be true"
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Invalid access to memory: MAP KEY of size {size}B and offset of {offset}B in {key_size}B of memory", location=s, suggestion=suggestion)
-            return 
         
-def invalid_accesss_to_map_value(output, value_size, offset, size):
-    suggestion = None
-    if offset+size > value_size:
-        suggestion= "Add a bound check:"+\
-        "   offset + size <= value_size must be true"
+def invalid_accesss_to_object(output, value_size, offset, size, object):
+    appendix = None
+    location = None
+
+    if value_size<=offset: 
+        byte_suggestion= f"{offset-value_size+size} bytes over the upper bound"
+    else:
+        byte_suggestion= f"{-offset-1+size} bytes under the lower bound"
+
+        appendix = f"The eBPF verifier is detecting {byte_suggestion} of the {object} you are trying to access."
+
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Invalid access to memory: MAP VALUE of size {size}B and offset of {offset}B in {value_size}B of memory", location=s, suggestion=suggestion)
-            return 
-        
-def invalid_accesss_to_packet(output, mem_size, offset, size):
-    suggestion = None
-    if offset+size > mem_size:
-        suggestion= "Add a bound check:"+\
-        "   offset + size <= mem_size must be true"
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Invalid access to memory: PACKET of size {size}B and offset of {offset}B in {mem_size}B of memory", location=s, suggestion=suggestion)
-            return 
-        
-def invalid_accesss_to_mem_region(output, mem_size, offset, size):
-    suggestion = None
-    if offset+size > mem_size:
-        suggestion= "Add a bound check:"+\
-        "   offset + size <= mem_size must be true"
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Invalid access to memory: MEMORY REGION of size {size}B and offset of {offset}B in {mem_size}B of memory", location=s, suggestion=suggestion)
-            return 
+            location = s
+            break
+
+    index_regex = re.search(r"(.*)\[(\b[_a-zA-Z][_a-zA-Z0-9]*\b)\](.*)", location)
+    if index_regex:
+        index = f' "{index_regex.group(2)}"'
+    else:
+        index = ""
+
+    suggestion = f"Make sure that the index{index} has been checked to be within the {object} allocated memory, or that the current bound check is restrictive enough (you are off by {byte_suggestion}).\n"
+
+    print_error(f"Invalid access to {object}", location=location, suggestion=suggestion, appendix=appendix)
         
 def __check_mem_access_check(output, line):
 
     invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_map_key_pattern:
-        invalid_accesss_to_map_key(
+        invalid_accesss_to_object(
             output,
             int(invalid_accesss_to_map_key_pattern.group(1)),
             int(invalid_accesss_to_map_key_pattern.group(2)),
             int(invalid_accesss_to_map_key_pattern.group(3)),
+            "map key"
         )
         return
 
     invalid_accesss_to_map_value_pattern = re.search(r"invalid access to map value, value_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_map_value_pattern:
-        invalid_accesss_to_map_value(
+        invalid_accesss_to_object(
             output,
             int(invalid_accesss_to_map_value_pattern.group(1)),
             int(invalid_accesss_to_map_value_pattern.group(2)),
             int(invalid_accesss_to_map_value_pattern.group(3)),
+            "map value"
         )
         return
     invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(-?\d+) size=(\d+), R(\d+)\(id=(\d+),off=(-?\d+),r=(\d+)\)", line)
     if invalid_accesss_to_packet_pattern:
-        invalid_accesss_to_packet(
+        invalid_accesss_to_object(
             output,
             int(invalid_accesss_to_packet_pattern.group(6)),
             int(invalid_accesss_to_packet_pattern.group(1)),
             int(invalid_accesss_to_packet_pattern.group(2)),
+            "packet"
         )
         return
     invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, mem_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_mem_region_pattern:
-        invalid_accesss_to_mem_region(
+        invalid_accesss_to_object(
             output,
             int(invalid_accesss_to_mem_region_pattern.group(1)),
             int(invalid_accesss_to_mem_region_pattern.group(2)),
             int(invalid_accesss_to_mem_region_pattern.group(3)),
+            "memory region"
         )
         return
 def min_value_is_outside_mem_range(output):
@@ -844,6 +835,7 @@ def bitwise_operator_on_pointer(output, reg_num, operator):
             return
 
 def pointer_arithmetic_with_operator(output, reg_num, operator):
+    # todo quando c'è un bitwise <<= probabilmente c'è un cast che varia le dimensioni del puntatore
     appendix = "Only addiction and subtraction are allowed"
     for s in reversed(output):
         if s.startswith(';'):
