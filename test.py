@@ -103,12 +103,12 @@ if __name__ == "__main__":
     test_suite.add_test_case("jump_out_of_range_kfunc")
     test_suite.add_test_case("last_insn_not_exit_jmp")
     test_suite.add_test_case("max_value_is_outside_mem_range", 
-                             "error: Invalid access to memory: MAP VALUE of size 1B and offset of 16B in 16B of memory",
+                             "error: Invalid access to map value",
                              bpf_file="max_value_is_outside_map_value")    
     test_suite.add_test_case("min_value_is_outside_mem_range", 
-                             "error: Invalid access to memory: MAP VALUE of size 1B and offset of -8B in 16B of memory",
+                             "error: Invalid access to map value",
                              bpf_file="min_value_is_outside_map_value")
-    test_suite.add_test_case("offset_outside_packet", "error: Invalid access to memory: PACKET of size 1B and offset of 0B in 0B of memory")
+    test_suite.add_test_case("offset_outside_packet", "error: Invalid access to packet")
     test_suite.add_test_case("min_value_is_negative")
     test_suite.add_test_case("check_ptr_off_reg")
     test_suite.add_test_case("invalid_access_to_flow_keys")
@@ -164,8 +164,13 @@ if __name__ == "__main__":
     test_suite.add_test_case("bitwise_operator_on_pointer_or", "error: Bitwise operations (OR) on pointer prohibited")
     test_suite.add_test_case("bitwise_operator_on_pointer_xor", "error: Bitwise operations (XOR) on pointer prohibited")
     
-    test_suite.add_test_case("pointer_arithmetic_with_operator")
-    test_suite.add_test_case("pointer_operation_prohibited", "error: *= prohibited in pointer arithmetic")
+    test_suite.add_test_case("pointer_arithmetic_with_operator_multiplication", "error: Multiplication prohibited in pointer arithmetic")
+    test_suite.add_test_case("pointer_arithmetic_with_operator_division", "error: Division prohibited in pointer arithmetic")
+    test_suite.add_test_case("pointer_arithmetic_with_operator_module", "error: Module operator prohibited in pointer arithmetic")
+    test_suite.add_test_case("pointer_arithmetic_with_operator_left_shift", "error: Left shift prohibited in pointer arithmetic")
+    test_suite.add_test_case("pointer_arithmetic_with_operator_right_shift", "error: Right shift prohibited in pointer arithmetic")
+
+    test_suite.add_test_case("pointer_operation_prohibited")
     test_suite.add_test_case("pointer_arithmetic_prohibited_single_reg")
     test_suite.add_test_case("sign_extension_pointer")
     test_suite.add_test_case("partial_copy_of_pointer")

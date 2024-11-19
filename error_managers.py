@@ -835,11 +835,26 @@ def bitwise_operator_on_pointer(output, reg_num, operator):
             return
 
 def pointer_arithmetic_with_operator(output, reg_num, operator):
-    # todo quando c'è un bitwise <<= probabilmente c'è un cast che varia le dimensioni del puntatore
-    appendix = "Only addiction and subtraction are allowed"
+    appendix = None
+    suggestion = "Only addiction and subtraction are allowed"
+    if operator == '*=':
+        displayed_operator = 'Multiplication'
+    elif operator == '/=':
+        displayed_operator = 'Division'
+    elif operator == '%=':
+        displayed_operator = 'Module operator'
+    elif operator == '<<=':
+        displayed_operator = 'Left shift'
+        appendix = "It may be the result of a multiplication or an up cast, that are forbidden"
+    elif operator == '>>=':
+        displayed_operator = 'Right shift'
+        appendix = "It may be the result of a division or a down cast, that are forbidden"
+    else:
+        displayed_operator = operator
+    
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"{operator} prohibited in pointer arithmetic", location=s, appendix=appendix)
+            print_error(f"{displayed_operator} prohibited in pointer arithmetic", location=s, appendix=appendix, suggestion=suggestion)
             return
         
 def pointer_operation_prohibited(output, reg_num, operation):
