@@ -241,7 +241,7 @@ def invalid_accesss_to_object(output, value_size, offset, size, object):
     else:
         byte_suggestion= f"{-offset-1+size} bytes under the lower bound"
 
-        appendix = f"The eBPF verifier is detecting {byte_suggestion} of the {object} you are trying to access."
+    appendix = f"The eBPF verifier is detecting {byte_suggestion} of the {object} you are trying to access."
 
     for s in reversed(output):
         if s.startswith(';'):

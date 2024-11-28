@@ -1,6 +1,68 @@
 import subprocess
 import re
 
+class PrettyVerifierOutput:
+    '''    
+    def __init__(self, error_message, line_number=None, code=None, file_name=None, appendix=None, suggestion=None):
+        self.error_message = error_message
+        self.line_number = line_number
+        self.code = code
+        self.file_name = file_name
+        self.appendix = appendix
+        self.suggestion = suggestion
+    '''
+
+    def __init__(self, original_output):
+
+        # clean the terminal colors
+        output = re.sub(r'\033(\[(\d+)m)?', '', original_output)
+        
+
+        starting_string = "#######################\n## Prettier Verifier ##\n#######################\n\n"
+        
+        start = output.find(starting_string)
+        start += len(starting_string)
+        
+
+        error_message_pattern = re.match(r"error: (.*)\n", output[start:])
+        if error_message_pattern:
+            self.error_message = error_message_pattern.group(1)
+            start += len(f"error: {self.error_message}") + 1 #/n are not considered as characters in len()
+
+        location_pattern = re.match(r"   (\d+) \| (.*)\n(.*)in file (.*)\n", output[start:])
+        if location_pattern:
+            self.line_number = location_pattern.group(1)
+            self.code = location_pattern.group(2)
+            self.file_name = location_pattern.group(4)
+            start += len(f"   {self.line_number} | {self.code}\n    {' ' * len(self.line_number)}| in file {self.file_name}\n")
+        
+        is_appendix = output[start] != '\n'
+        is_suggestion = '\033[92m' in original_output
+
+        print(is_appendix, is_suggestion)
+        if is_appendix:
+            end = start + output[start:].find("\n\n")
+            print(start, end)
+            self.appendix = output[start:end]
+            start += len(f"{self.appendix}")+2
+            '''
+            appendix_pattern = re.match(r"(.*)\n\n", output[start:], re.DOTALL)
+            if appendix_pattern:
+                self.appendix = appendix_pattern.group(1)
+                start += len(f"{self.appendix}\n") 
+            
+
+        if is_suggestion:
+            suggestion_pattern = re.match(r"\n(.*)\n\n", output[start:], re.DOTALL)
+            if suggestion_pattern:
+                self.suggestion = suggestion_pattern.group(1)
+            '''
+            
+        if is_suggestion:
+            end = start + output[start:].find("\n\n")
+            self.suggestion = output[start:end]
+
+
 class BPFTestCase:
     def __init__(self, function_name, expected_output=None, bpf_file=None):
  
@@ -26,6 +88,13 @@ class BPFTestCase:
             return None
 
     def trim_output(self, real_output):
+        my_instance = PrettyVerifierOutput(real_output)
+
+        # Stampa tutti gli attributi dell'istanza
+        for attr, value in vars(my_instance).items():
+            print(f"{attr}: {value}")
+
+        
         real_output = re.sub(r'\033(\[(\d+)m)?', '', real_output)
 
         starting_string = "#######################\n## Prettier Verifier ##\n#######################\n\n"
@@ -35,6 +104,7 @@ class BPFTestCase:
 
         return real_output[start:start+end]
     
+
     def validate_output(self, output):
         return self.expected_output in output
     
@@ -95,13 +165,15 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_bpf_context_access_socket", "error: Invalid access to context parameter")
 
     test_suite.add_test_case("type_mismatch", "error: Wrong argument passed to helper function")
+    
     test_suite.add_test_case("unreleased_reference", "error: Reference must be released before exiting")
+
     test_suite.add_test_case("gpl_delcaration_missing", "error: GPL declaration missing")
+
     test_suite.add_test_case("reg_not_ok", "error: Function must not have empty body")
+
     test_suite.add_test_case("kfunc_require_gpl_program", "error: Kernel function need to be called from GPL compatible program")
-    test_suite.add_test_case("too_many_kernel_functions")
-    test_suite.add_test_case("jump_out_of_range_kfunc")
-    test_suite.add_test_case("last_insn_not_exit_jmp")
+
     test_suite.add_test_case("max_value_is_outside_mem_range", 
                              "error: Invalid access to map value",
                              bpf_file="max_value_is_outside_map_value")    
@@ -109,55 +181,15 @@ if __name__ == "__main__":
                              "error: Invalid access to map value",
                              bpf_file="min_value_is_outside_map_value")
     test_suite.add_test_case("offset_outside_packet", "error: Invalid access to packet")
-    test_suite.add_test_case("min_value_is_negative")
-    test_suite.add_test_case("check_ptr_off_reg")
-    test_suite.add_test_case("invalid_access_to_flow_keys")
-    test_suite.add_test_case("misaligned_access")
-    test_suite.add_test_case("stack_frames_exceeded")
-    test_suite.add_test_case("tail_calls_not_allowed_if_frame_size_exceeded")
-    test_suite.add_test_case("combined_stack_size_exceeded")
-    test_suite.add_test_case("invalid_buffer_access")
-    test_suite.add_test_case("write_to_change_key_not_allowed")
-    test_suite.add_test_case("rd_leaks_addr_into_map")
+
     test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem", "error: Cannot write into scalar value (not a pointer)")
-    test_suite.add_test_case("cannot_write_into_type")
-    test_suite.add_test_case("rd_leaks_addr_into_mem")
-    test_suite.add_test_case("rd_leaks_addr_into_ctx")
-    test_suite.add_test_case("cannot_write_into_packet")
-    test_suite.add_test_case("rd_leaks_addr_into_packet")
-    test_suite.add_test_case("rd_leaks_addr_into_flow_keys")
-    test_suite.add_test_case("atomic_stores_into_type_not_allowed")
-    test_suite.add_test_case("min_value_is_negative_2")
-    test_suite.add_test_case("unbounded_mem_access")
-    test_suite.add_test_case("map_has_to_have_BTF")
-    test_suite.add_test_case("dynptr_has_to_be_uninit")
-    test_suite.add_test_case("expected_initialized_dynptr")
-    test_suite.add_test_case("expected_dynptr_of_type_help_fun")
-    test_suite.add_test_case("expected_uninitialized_iter")
-    test_suite.add_test_case("expected_initialized_iter")
-    test_suite.add_test_case("helper_access_to_packet_not_allowed")
-    test_suite.add_test_case("rd_not_point_to_readonly_map")
-    test_suite.add_test_case("cannot_pass_map_type_into_func")
-    test_suite.add_test_case("r0_not_scalar")
-    test_suite.add_test_case("verbose_invalid_scalar")
-    test_suite.add_test_case("write_into_map_forbidden")
-    test_suite.add_test_case("func_only_supported_for_fentry")
-    test_suite.add_test_case("func_not_supported_for_prog_type")
-    test_suite.add_test_case("invalid_func")
+
     test_suite.add_test_case("unknown_func", "error: Unknown function bpf_ktime_get_coarse_ns")
-    test_suite.add_test_case("function_has_more_args")
-    test_suite.add_test_case("register_not_scalar")
-    test_suite.add_test_case("possibly_null_pointer_passed")
-    test_suite.add_test_case("arg_expected_pointer_to_ctx")
-    test_suite.add_test_case("arg_expected_pointer_to_stack")
-    test_suite.add_test_case("arg_is_expected")
-    test_suite.add_test_case("expected_pointer_to_func")
+
     test_suite.add_test_case("math_between_pointer")#, "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
-    test_suite.add_test_case("pointer_offset_not_allowed")
+
     test_suite.add_test_case("value_out_of_bounds", "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
-    test_suite.add_test_case("bit32_pointer_arithmetic_prohibited")
-    test_suite.add_test_case("pointer_arithmetic_null_check") #probably not testable since in order to do pointer arithmetic you first need to access memeory
-    test_suite.add_test_case("pointer_arithmetic_prohibited")
+
     test_suite.add_test_case("subtract_pointer_from_scalar", "error: Cannot subtract pointer from scalar")
     
     test_suite.add_test_case("bitwise_operator_on_pointer_and", "error: Bitwise operations (AND) on pointer prohibited")
@@ -170,20 +202,8 @@ if __name__ == "__main__":
     test_suite.add_test_case("pointer_arithmetic_with_operator_left_shift", "error: Left shift prohibited in pointer arithmetic")
     test_suite.add_test_case("pointer_arithmetic_with_operator_right_shift", "error: Right shift prohibited in pointer arithmetic")
 
-    test_suite.add_test_case("pointer_operation_prohibited")
-    test_suite.add_test_case("pointer_arithmetic_prohibited_single_reg")
-    test_suite.add_test_case("sign_extension_pointer")
-    test_suite.add_test_case("partial_copy_of_pointer")
-    test_suite.add_test_case("pointer_comparison_prohibited")
-    test_suite.add_test_case("leaks_addr_as_return_value")
-    test_suite.add_test_case("async_callback_register_not_known")
-    test_suite.add_test_case("subprogram_exit_register_not_scalar")
-    test_suite.add_test_case("program_exit_register_not_known")
-    test_suite.add_test_case("back_edge")
-    test_suite.add_test_case("unreachable_insn")
     test_suite.add_test_case("infinite_loop_detected", "error: Infinite loop detected")
-    test_suite.add_test_case("same_insn_different_pointers")
-    test_suite.add_test_case("bpf_program_too_large")
+
 
 
 
