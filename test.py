@@ -2,69 +2,115 @@ import subprocess
 import re
 
 class PrettyVerifierOutput:
-    '''    
+    
     def __init__(self, error_message, line_number=None, code=None, file_name=None, appendix=None, suggestion=None):
-        self.error_message = error_message
-        self.line_number = line_number
-        self.code = code
-        self.file_name = file_name
-        self.appendix = appendix
-        self.suggestion = suggestion
-    '''
+        self.error_message = error_message.strip()
+        if line_number:
+            self.line_number = str(line_number).strip()
+        else:
+            self.line_number=None
+        if code:
+            self.code = code.strip()
+        else:
+            self.code = None
+        if file_name:
+            self.file_name = file_name.strip()
+        else:
+            self.file_name = None
+        if appendix: 
+            self.appendix = appendix.strip()
+        else:
+            self.appendix = None
+        if suggestion: 
+            self.suggestion = suggestion.strip()
+        else:
+            self.suggestion = None
 
-    def __init__(self, original_output):
+    @classmethod
+    def from_output(cls, original_output):
 
         # clean the terminal colors
         output = re.sub(r'\033(\[(\d+)m)?', '', original_output)
         
+        error_message = None
+        line_number = None
+        code = None
+        file_name = None
+        appendix = None
+        suggestion = None
 
         starting_string = "#######################\n## Prettier Verifier ##\n#######################\n\n"
         
         start = output.find(starting_string)
         start += len(starting_string)
-        
 
         error_message_pattern = re.match(r"error: (.*)\n", output[start:])
         if error_message_pattern:
-            self.error_message = error_message_pattern.group(1)
-            start += len(f"error: {self.error_message}") + 1 #/n are not considered as characters in len()
+            error_message = error_message_pattern.group(1).strip()
+            start += len(f"error: {error_message}") + 1 #/n are not considered as characters in len()
 
         location_pattern = re.match(r"   (\d+) \| (.*)\n(.*)in file (.*)\n", output[start:])
         if location_pattern:
-            self.line_number = location_pattern.group(1)
-            self.code = location_pattern.group(2)
-            self.file_name = location_pattern.group(4)
-            start += len(f"   {self.line_number} | {self.code}\n    {' ' * len(self.line_number)}| in file {self.file_name}\n")
+            line_number = location_pattern.group(1).strip()
+            code = location_pattern.group(2).strip()
+            file_name = location_pattern.group(4).strip()
+            start += len(f"   {line_number} | {code}\n    {' ' * len(line_number)}| in file {file_name}\n")
         
         is_appendix = output[start] != '\n'
         is_suggestion = '\033[92m' in original_output
 
-        print(is_appendix, is_suggestion)
         if is_appendix:
             end = start + output[start:].find("\n\n")
             print(start, end)
-            self.appendix = output[start:end]
-            start += len(f"{self.appendix}")+2
-            '''
-            appendix_pattern = re.match(r"(.*)\n\n", output[start:], re.DOTALL)
-            if appendix_pattern:
-                self.appendix = appendix_pattern.group(1)
-                start += len(f"{self.appendix}\n") 
-            
-
-        if is_suggestion:
-            suggestion_pattern = re.match(r"\n(.*)\n\n", output[start:], re.DOTALL)
-            if suggestion_pattern:
-                self.suggestion = suggestion_pattern.group(1)
-            '''
+            appendix = output[start:end].strip()
+            start += len(f"{appendix}")+2
             
         if is_suggestion:
+            # in those cases the /n is not removed
+            if not is_appendix:
+                start += 1
             end = start + output[start:].find("\n\n")
-            self.suggestion = output[start:end]
+            suggestion = output[start:end].strip()
+
+        return cls(
+            error_message, 
+            line_number,
+            code,
+            file_name,
+            appendix,
+            suggestion
+        )
+
+    def strict_test(self, oracle):
+        if not isinstance(oracle, PrettyVerifierOutput):
+            return NotImplemented
+        
+        return (self.error_message == oracle.error_message and
+                self.line_number == oracle.line_number and
+                self.code == oracle.code and
+                self.file_name == oracle.file_name and
+                self.appendix == oracle.appendix and
+                self.suggestion == oracle.suggestion)
+
+    # a loose comparison to test also if the oracle has incomplete data
+    def loose_test(self, oracle):
+        if not isinstance(oracle, PrettyVerifierOutput):
+            return NotImplemented
+        
+        return (self.error_message == oracle.error_message and
+                (oracle.line_number is None or self.line_number == oracle.line_number) and
+                (oracle.code is None or self.code == oracle.code) and
+                (oracle.file_name is None or self.file_name == oracle.file_name) and
+                (oracle.appendix is None or self.appendix == oracle.appendix) and
+                (oracle.suggestion is None or self.suggestion == oracle.suggestion))
+    
+    def __str__(self):
+        return f"error message: {self.error_message}\nlocation: {self.line_number} | {self.code}\nin file {self.file_name}\nappendix: {self.appendix}\nsuggestion: {self.suggestion}\n"
+
 
 
 class BPFTestCase:
-    def __init__(self, function_name, expected_output=None, bpf_file=None):
+    def __init__(self, function_name, expected_output: PrettyVerifierOutput|None, bpf_file=None, strict = False):
  
         self.function_name = function_name
         if bpf_file:
@@ -72,6 +118,7 @@ class BPFTestCase:
         else:
             self.bpf_file = function_name
         self.expected_output = expected_output
+        self.strict = strict
 
 
     def run_command(self, directory):
@@ -87,27 +134,6 @@ class BPFTestCase:
         except subprocess.CalledProcessError as e:
             return None
 
-    def trim_output(self, real_output):
-        my_instance = PrettyVerifierOutput(real_output)
-
-        # Stampa tutti gli attributi dell'istanza
-        for attr, value in vars(my_instance).items():
-            print(f"{attr}: {value}")
-
-        
-        real_output = re.sub(r'\033(\[(\d+)m)?', '', real_output)
-
-        starting_string = "#######################\n## Prettier Verifier ##\n#######################\n\n"
-        start = real_output.find(starting_string) + len(starting_string)
-
-        end = real_output[start:].find("\n\n")
-
-        return real_output[start:start+end]
-    
-
-    def validate_output(self, output):
-        return self.expected_output in output
-    
 
     def run_test(self, directory):
 
@@ -122,12 +148,15 @@ class BPFTestCase:
         if real_output is None:
             raise AssertionError(f"Error in running {self.function_name}")
 
-        output = self.trim_output(real_output)
-        if not output or output == "":
-            output = real_output
+        output = PrettyVerifierOutput.from_output(real_output)
+
+        if self.strict:
+            passed = output.strict_test(self.expected_output)
+        else:
+            passed = output.loose_test(self.expected_output)
 
 
-        if not self.validate_output(output):
+        if not passed:
             raise AssertionError(f"Test of function {self.function_name} \033[91mfailed\033[0m: \nexpected '{self.expected_output}', \ngot '{output}'")
 
         print(f"Test of function {self.function_name} \033[92mpassed\033[0m")
@@ -138,9 +167,9 @@ class BPFTestSuite:
         self.test_cases = []
         self.test_cases_directory = test_cases_directory
 
-    def add_test_case(self, function_name, expected_output=None, bpf_file=None):
+    def add_test_case(self, function_name, expected_output=None, bpf_file=None, strict = False):
 
-        self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file))
+        self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file, strict))
 
     def run_all_tests(self):
         error = None
@@ -157,57 +186,193 @@ class BPFTestSuite:
 if __name__ == "__main__":
 
     test_suite = BPFTestSuite("../ebpf-codebase/not-working/generated")
+    #invalid variable offset read from stack
+    test_suite.add_test_case("invalid_variable_offset_read_from_stack", 
+                            PrettyVerifierOutput(
+                                error_message="Accessing address outside checked memory range",
+                                line_number= 49,
+                                code = "char a = data.message[c];",
+                                file_name = "../ebpf-codebase/not-working/generated/invalid_variable_offset_read_from_stack.bpf.c"
+                            ))
+    #invalid size of register spill
+    test_suite.add_test_case("invalid_size_of_register_spill",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid size of register saved in the stack",
+                                line_number= 16,
+                                code = "index = ctx->data_end;",
+                                file_name = "../ebpf-codebase/not-working/generated/invalid_size_of_register_spill.bpf.c"
+                            ))
+    #invalid access to bpf context
+    test_suite.add_test_case("invalid_bpf_context_access_sk_msg",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid access to context parameter",
+                                line_number= 12,
+                                code = "msg->family = (__u32)1;",
+                                file_name = "../ebpf-codebase/not-working/generated/invalid_bpf_context_access_sk_msg.bpf.c",
+                                appendix = "Cannot read or write in the context parameter for the sk_msg program type"
+                            )) 
+    test_suite.add_test_case("invalid_bpf_context_access_socket",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid access to context parameter",
+                                line_number= 12,
+                                code = "void *data_end = (void *)(long)skb->data_end;",
+                                file_name = "../ebpf-codebase/not-working/generated/invalid_bpf_context_access_socket.bpf.c",
+                                appendix = "Cannot read or write in the context parameter for the socket program type"
+                            )) 
+    #type mismatch
+    test_suite.add_test_case("type_mismatch",                              
+                            PrettyVerifierOutput(
+                                error_message="Wrong argument passed to helper function",
+                                line_number= 53,
+                                code = "p = bpf_map_lookup_elem(&data, &uid);",
+                                file_name = "../ebpf-codebase/not-working/generated/type_mismatch.bpf.c",
+                                appendix = "1° argument (&data) is a pointer to locally defined data (frame pointer), but a pointer to map is expected"
+                            ))
+    #unreleased reference
+    test_suite.add_test_case("unreleased_reference",                              
+                            PrettyVerifierOutput(
+                                error_message="Reference must be released before exiting",
+                                line_number= 31,
+                                code = "e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);",
+                                file_name = "../ebpf-codebase/not-working/generated/unreleased_reference.bpf.c",
+                            ))
+    #gpl reference missing
+    test_suite.add_test_case("gpl_delcaration_missing", 
+                             PrettyVerifierOutput(
+                                 error_message="GPL declaration missing"))
+    #reg not ok
+    test_suite.add_test_case("reg_not_ok", 
+                             PrettyVerifierOutput(
+                                 error_message="Function must not have empty body"))
+    #kfunc require gpl program
+    test_suite.add_test_case("kfunc_require_gpl_program", 
+                             PrettyVerifierOutput(
+                                 error_message="Kernel function need to be called from GPL compatible program"))
+    #invalid access to memory
+    test_suite.add_test_case("max_value_is_outside_mem_range",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid access to map value",
+                                line_number= 42,
+                                code = "char a = message[c];",
+                                file_name = "../ebpf-codebase/not-working/generated/max_value_is_outside_map_value.bpf.c",
+                                appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the map value you are trying to access.",
+                                suggestion="Make sure that the index \"c\" has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
+                            ), bpf_file="max_value_is_outside_map_value")   
+    test_suite.add_test_case("min_value_is_outside_mem_range",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid access to map value",
+                                line_number= 42,
+                                code = "char a = *((char*)(message - 5));",
+                                file_name = "../ebpf-codebase/not-working/generated/min_value_is_outside_map_value.bpf.c",
+                                appendix="The eBPF verifier is detecting 1 bytes under the lower bound of the map value you are trying to access.",
+                                suggestion="Make sure that the index has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes under the lower bound)."
+                            ), bpf_file="min_value_is_outside_map_value")
+    test_suite.add_test_case("offset_outside_packet",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid access to packet",
+                                line_number= 16,
+                                code = "s[0] = *((unsigned char*)(data + 100));",
+                                file_name = "../ebpf-codebase/not-working/generated/offset_outside_packet.bpf.c",
+                                appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the packet you are trying to access.",
+                                suggestion="Make sure that the index has been checked to be within the packet allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
+                            ))
+    #invaid mem accesso null ptr to mem
+    test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem",                              
+                            PrettyVerifierOutput(
+                                error_message="Cannot write into scalar value (not a pointer)",
+                                line_number= 29,
+                                code = "struct dentry *de = f->f_path.dentry;",
+                                file_name = "../ebpf-codebase/not-working/generated/invalid_mem_access_null_ptr_to_mem.bpf.c",
+                            ))
+    #unknown func
+    test_suite.add_test_case("unknown_func",                              
+                            PrettyVerifierOutput(
+                                error_message="Unknown function bpf_ktime_get_coarse_ns",
+                                line_number= 32,
+                                code = "u64 key = bpf_ktime_get_coarse_ns();",
+                                file_name = "../ebpf-codebase/not-working/generated/unknown_func.bpf.c",
+                            ))
 
-    test_suite.add_test_case("invalid_variable_offset_read_from_stack", "error: Accessing address outside checked memory range")
-    test_suite.add_test_case("invalid_size_of_register_spill", "error: Invalid size of register saved in the stack")
+    test_suite.add_test_case("math_between_pointer")#, PrettyVerifierOutput("Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)"))
     
-    test_suite.add_test_case("invalid_bpf_context_access_sk_msg", "error: Invalid access to context parameter")
-    test_suite.add_test_case("invalid_bpf_context_access_socket", "error: Invalid access to context parameter")
-
-    test_suite.add_test_case("type_mismatch", "error: Wrong argument passed to helper function")
-    
-    test_suite.add_test_case("unreleased_reference", "error: Reference must be released before exiting")
-
-    test_suite.add_test_case("gpl_delcaration_missing", "error: GPL declaration missing")
-
-    test_suite.add_test_case("reg_not_ok", "error: Function must not have empty body")
-
-    test_suite.add_test_case("kfunc_require_gpl_program", "error: Kernel function need to be called from GPL compatible program")
-
-    test_suite.add_test_case("max_value_is_outside_mem_range", 
-                             "error: Invalid access to map value",
-                             bpf_file="max_value_is_outside_map_value")    
-    test_suite.add_test_case("min_value_is_outside_mem_range", 
-                             "error: Invalid access to map value",
-                             bpf_file="min_value_is_outside_map_value")
-    test_suite.add_test_case("offset_outside_packet", "error: Invalid access to packet")
-
-    test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem", "error: Cannot write into scalar value (not a pointer)")
-
-    test_suite.add_test_case("unknown_func", "error: Unknown function bpf_ktime_get_coarse_ns")
-
-    test_suite.add_test_case("math_between_pointer")#, "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
-
-    test_suite.add_test_case("value_out_of_bounds", "error: Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)")
-
-    test_suite.add_test_case("subtract_pointer_from_scalar", "error: Cannot subtract pointer from scalar")
-    
-    test_suite.add_test_case("bitwise_operator_on_pointer_and", "error: Bitwise operations (AND) on pointer prohibited")
-    test_suite.add_test_case("bitwise_operator_on_pointer_or", "error: Bitwise operations (OR) on pointer prohibited")
-    test_suite.add_test_case("bitwise_operator_on_pointer_xor", "error: Bitwise operations (XOR) on pointer prohibited")
-    
-    test_suite.add_test_case("pointer_arithmetic_with_operator_multiplication", "error: Multiplication prohibited in pointer arithmetic")
-    test_suite.add_test_case("pointer_arithmetic_with_operator_division", "error: Division prohibited in pointer arithmetic")
-    test_suite.add_test_case("pointer_arithmetic_with_operator_module", "error: Module operator prohibited in pointer arithmetic")
-    test_suite.add_test_case("pointer_arithmetic_with_operator_left_shift", "error: Left shift prohibited in pointer arithmetic")
-    test_suite.add_test_case("pointer_arithmetic_with_operator_right_shift", "error: Right shift prohibited in pointer arithmetic")
-
-    test_suite.add_test_case("infinite_loop_detected", "error: Infinite loop detected")
-
-
-
-
-    
+    #value out of bounds
+    test_suite.add_test_case("value_out_of_bounds",                              
+                            PrettyVerifierOutput(
+                                error_message="Accessing pointer to start of XDP packet pointer with offset -2147483648",
+                                line_number= 82,
+                                code = "data += ext_len;",
+                                file_name = "../ebpf-codebase/not-working/generated/value_out_of_bounds.bpf.c",
+                            ))
+    #subtract pointer from scalar
+    test_suite.add_test_case("subtract_pointer_from_scalar",                              
+                            PrettyVerifierOutput(
+                                error_message="Cannot subtract pointer from scalar",
+                                line_number= 9,
+                                code = "scalar -= (unsigned long)ptr;",
+                                file_name = "../ebpf-codebase/not-working/generated/subtract_pointer_from_scalar.bpf.c",
+                            ))
+    #bitwise operator on pointer
+    test_suite.add_test_case("bitwise_operator_on_pointer_and",                              
+                            PrettyVerifierOutput(
+                                error_message="Bitwise operations (AND) on pointer prohibited",
+                                line_number= 10,
+                                code = "return (int)(long)result;",
+                                file_name = "../ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_and.bpf.c",
+                            ))
+    test_suite.add_test_case("bitwise_operator_on_pointer_or",                              
+                            PrettyVerifierOutput(
+                                error_message="Bitwise operations (OR) on pointer prohibited",
+                                line_number= 10,
+                                code = "return (int)(long)result;",
+                                file_name = "../ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_or.bpf.c",
+                            ))
+    test_suite.add_test_case("bitwise_operator_on_pointer_xor",                              
+                            PrettyVerifierOutput(
+                                error_message="Bitwise operations (XOR) on pointer prohibited",
+                                line_number= 10,
+                                code = "return (int)(long)result;",
+                                file_name = "../ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_xor.bpf.c",
+                            ))
+    #pointer arithmetic with operator
+    test_suite.add_test_case("pointer_arithmetic_with_operator_multiplication",                              
+                            PrettyVerifierOutput(
+                                error_message="Multiplication prohibited in pointer arithmetic",
+                                line_number= 10,
+                                code = "return (int)(long)result;",
+                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_multiplication.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_with_operator_division",                              
+                            PrettyVerifierOutput(
+                                error_message="Division prohibited in pointer arithmetic",
+                                line_number= 9,
+                                code = "void *result = (void *)(((unsigned long)ptr)/5);",
+                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_division.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_with_operator_module",                              
+                            PrettyVerifierOutput(
+                                error_message="Module operator prohibited in pointer arithmetic",
+                                line_number= 9,
+                                code = "void *result = (void *)(((unsigned long)ptr)%5);",
+                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_module.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_with_operator_left_shift",                              
+                            PrettyVerifierOutput(
+                                error_message="Left shift prohibited in pointer arithmetic",
+                                line_number= 10,
+                                code = "return (int)(long)result;",
+                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_left_shift.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_with_operator_right_shift",                              
+                            PrettyVerifierOutput(
+                                error_message="Right shift prohibited in pointer arithmetic",
+                                line_number= 9,
+                                code = "void *result = (void *)((unsigned long)ptr>>4);",
+                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_right_shift.bpf.c",
+                            ))
+    #infinite loop detected
+    test_suite.add_test_case("infinite_loop_detected", 
+                             PrettyVerifierOutput(
+                                 error_message="Infinite loop detected"))
     try:
         test_suite.run_all_tests()
     except AssertionError as e:
