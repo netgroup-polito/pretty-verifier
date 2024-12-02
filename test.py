@@ -218,6 +218,31 @@ class BPFTestSuite:
         return len(self.test_cases)
 
 class BPFTestShaker:
+
+    '''
+    Ebpf programs that has different bugs may fail, since adding values in the middle can change the orger in which the instruction are checked
+    for example:
+    
+    SEC("socket")
+    int myprog(struct __sk_buff *skb) {
+            void *data = (void *)(long)skb->data;
+            void *data_end = (void *)(long)skb->data_end;
+            struct ethhdr *eth = data;
+
+            if ((void*)eth + sizeof(*eth) > data_end)
+                    return 0;
+            return 1;
+    }
+    in this case the verifier will signal the direct access to the data_end parameter, which is not allowed for this type of program
+
+    if we add elements right before the line where the element is accessed (void *data_end = (void *)(long)skb->data_end;), it will instead signal the access to data 
+    (void *data = (void *)(long)skb->data;) since are both used in the if clause later.
+
+    In order to pass the test shaker, the access has been restricted to just one parameter (bpf_printk("%c  \n", *((char*)data));)
+    
+    It's suggested to fix issues like this one in the same way.
+    '''
+
     def __init__(self, test_suite: BPFTestSuite, iterations=1, max_range=50):
         self.test_suite = test_suite
         if os.path.exists(f"{test_suite.test_cases_directory}/shaken"):
@@ -249,9 +274,15 @@ class BPFTestShaker:
                 for iteration in range(self.iterations):
 
                     added_lines = random.randint(1, self.max_range)
-                    location = random.randint(0, int(test.expected_output.line_number)-1)
+                    start_location = 0
+                    match_pattern = re.compile(r'^\s*SEC\("([^"]+)"\)\s*$')
+                    for (n, l) in enumerate(original_content):
+                        if match_pattern.match(l):
+                            start_location = n+2
+
+                    location = random.randint(start_location, int(test.expected_output.line_number)-1)
                     new_content = original_content[:]
-                    new_content.insert(location, added_lines * '\n')
+                    new_content.insert(location, added_lines * 'bpf_printk("test");\n')
 
                     with open(f"{self.shaken_test_suite.test_cases_directory}/{test.function_name}_{iteration}.bpf.c", "w") as file:
                         file.writelines(new_content)
@@ -295,7 +326,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_variable_offset_read_from_stack", 
                             PrettyVerifierOutput(
                                 error_message="Accessing address outside checked memory range",
-                                line_number= 49,
+                                line_number= 48,
                                 code = "char a = data.message[c];",
                                 file_name = "../ebpf-codebase/not-working/generated/invalid_variable_offset_read_from_stack.bpf.c"
                             ))
@@ -311,7 +342,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_bpf_context_access_sk_msg",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to context parameter",
-                                line_number= 12,
+                                line_number= 11,
                                 code = "msg->family = (__u32)1;",
                                 file_name = "../ebpf-codebase/not-working/generated/invalid_bpf_context_access_sk_msg.bpf.c",
                                 appendix = "Cannot read or write in the context parameter for the sk_msg program type"
@@ -319,8 +350,8 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_bpf_context_access_socket",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to context parameter",
-                                line_number= 12,
-                                code = "void *data_end = (void *)(long)skb->data_end;",
+                                line_number= 18,
+                                code = "void *data = (void *)(long)skb->data;",
                                 file_name = "../ebpf-codebase/not-working/generated/invalid_bpf_context_access_socket.bpf.c",
                                 appendix = "Cannot read or write in the context parameter for the socket program type"
                             )) 
@@ -337,7 +368,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("unreleased_reference",                              
                             PrettyVerifierOutput(
                                 error_message="Reference must be released before exiting",
-                                line_number= 31,
+                                line_number= 30,
                                 code = "e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);",
                                 file_name = "../ebpf-codebase/not-working/generated/unreleased_reference.bpf.c",
                             ))
@@ -357,7 +388,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("max_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to map value",
-                                line_number= 42,
+                                line_number= 41,
                                 code = "char a = message[c];",
                                 file_name = "../ebpf-codebase/not-working/generated/max_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the map value you are trying to access.",
@@ -366,7 +397,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("min_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to map value",
-                                line_number= 42,
+                                line_number= 41,
                                 code = "char a = *((char*)(message - 5));",
                                 file_name = "../ebpf-codebase/not-working/generated/min_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes under the lower bound of the map value you are trying to access.",
@@ -385,7 +416,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem",                              
                             PrettyVerifierOutput(
                                 error_message="Cannot write into scalar value (not a pointer)",
-                                line_number= 29,
+                                line_number= 28,
                                 code = "struct dentry *de = f->f_path.dentry;",
                                 file_name = "../ebpf-codebase/not-working/generated/invalid_mem_access_null_ptr_to_mem.bpf.c",
                             ))
@@ -393,7 +424,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("unknown_func",                              
                             PrettyVerifierOutput(
                                 error_message="Unknown function bpf_ktime_get_coarse_ns",
-                                line_number= 32,
+                                line_number= 31,
                                 code = "u64 key = bpf_ktime_get_coarse_ns();",
                                 file_name = "../ebpf-codebase/not-working/generated/unknown_func.bpf.c",
                             ))
