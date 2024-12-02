@@ -1,5 +1,9 @@
 import subprocess
 import re
+import random
+import os
+import time
+import shutil
 
 class PrettyVerifierOutput:
     
@@ -61,7 +65,6 @@ class PrettyVerifierOutput:
 
         if is_appendix:
             end = start + output[start:].find("\n\n")
-            print(start, end)
             appendix = output[start:end].strip()
             start += len(f"{appendix}")+2
             
@@ -106,7 +109,7 @@ class PrettyVerifierOutput:
     
     def __str__(self):
         return f"error message: {self.error_message}\nlocation: {self.line_number} | {self.code}\nin file {self.file_name}\nappendix: {self.appendix}\nsuggestion: {self.suggestion}\n"
-
+ 
 
 
 class BPFTestCase:
@@ -163,13 +166,16 @@ class BPFTestCase:
 
 
 class BPFTestSuite:
-    def __init__(self, test_cases_directory):
+    def __init__(self, test_cases_directory, make_command=None, clear_command=None):
         self.test_cases = []
         self.test_cases_directory = test_cases_directory
+        self.make_command = make_command
+        self.clear_command = clear_command
+        self.refuse_tests = False
 
     def add_test_case(self, function_name, expected_output=None, bpf_file=None, strict = False):
-
-        self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file, strict))
+        if not self.refuse_tests:
+            self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file, strict))
 
     def run_all_tests(self):
         error = None
@@ -182,10 +188,109 @@ class BPFTestSuite:
         if error:
             raise error
 
+    def make(self):
+        command = f"{self.make_command} -C {self.test_cases_directory}"
+
+
+        try:
+            subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as e:
+            raise(Exception(f"Error in making the files: {e.stderr}"))
+
+        
+
+    def clear(self):
+        command = f"{self.clear_command} -C {self.test_cases_directory}"
+
+        try:
+            subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            return False
+        
+    def exclude(self):
+        self.refuse_tests = True
+
+    def end_exclude(self):
+        self.refuse_tests = False
+
+    def __len__(self):
+        return len(self.test_cases)
+
+class BPFTestShaker:
+    def __init__(self, test_suite: BPFTestSuite, iterations=1, max_range=50):
+        self.test_suite = test_suite
+        if os.path.exists(f"{test_suite.test_cases_directory}/shaken"):
+            shutil.rmtree(f"{test_suite.test_cases_directory}/shaken")
+
+        os.mkdir(f"{test_suite.test_cases_directory}/shaken")
+        os.system(f'cp {test_suite.test_cases_directory}/Makefile {test_suite.test_cases_directory}/shaken/Makefile')
+        os.system(f'cp {test_suite.test_cases_directory}/load.sh {test_suite.test_cases_directory}/shaken/load.sh')
+        self.shaken_test_suite = BPFTestSuite(f"{test_suite.test_cases_directory}/shaken", test_suite.make_command, test_suite.clear_command)
+        self.max_range = max_range
+        self.iterations = iterations
+
+    def create_tests(self):        
+        self.shaken_test_suite = BPFTestSuite(f"{test_suite.test_cases_directory}/shaken", test_suite.make_command, test_suite.clear_command)
+        for test in test_suite.test_cases:
+
+            if not test.expected_output or not test.expected_output.line_number:
+                continue
+
+            file_name = f"{test_suite.test_cases_directory}/{test.bpf_file}.bpf.c"
+
+
+            with open(file_name, 'r') as file:
+                original_content = file.readlines()
+
+                while original_content and original_content[-1].strip() == "":
+                    original_content.pop()
+                
+                for iteration in range(self.iterations):
+
+                    added_lines = random.randint(1, self.max_range)
+                    location = random.randint(0, int(test.expected_output.line_number)-1)
+                    new_content = original_content[:]
+                    new_content.insert(location, added_lines * '\n')
+
+                    with open(f"{self.shaken_test_suite.test_cases_directory}/{test.function_name}_{iteration}.bpf.c", "w") as file:
+                        file.writelines(new_content)
+
+                        self.shaken_test_suite.add_test_case(f"{test.function_name}_{iteration}", 
+                                                PrettyVerifierOutput(test.expected_output.error_message, 
+                                                                    int(test.expected_output.line_number)+added_lines, 
+                                                                    test.expected_output.code,
+                                                                    f"{self.shaken_test_suite.test_cases_directory}/{test.function_name}_{iteration}.bpf.c", 
+                                                                    test.expected_output.appendix, 
+                                                                    test.expected_output.suggestion
+                                                                    ))  
+                    print(f"{test.function_name}_{iteration} created")    
+                
+        print("Compiling files...")  
+        self.shaken_test_suite.make()
+        print("Compilation completed.")  
+
+
+    def run_all_tests(self):
+        self.shaken_test_suite.run_all_tests()
+
+
+    def clear(self):
+        if os.path.exists(self.shaken_test_suite.test_cases_directory):
+            try:
+                shutil.rmtree(self.shaken_test_suite.test_cases_directory)
+                print(f"Shake teste cleared")
+            except OSError as e:
+                print(f"Error: '{self.shaken_test_suite.test_cases_directory}' cannot be removed. {e}")
+        else:
+            print(f"Directory not found.")
+
+
 
 if __name__ == "__main__":
 
-    test_suite = BPFTestSuite("../ebpf-codebase/not-working/generated")
+    test_suite = BPFTestSuite("../ebpf-codebase/not-working/generated", "make", "make clear")
+
     #invalid variable offset read from stack
     test_suite.add_test_case("invalid_variable_offset_read_from_stack", 
                             PrettyVerifierOutput(
@@ -373,7 +478,21 @@ if __name__ == "__main__":
     test_suite.add_test_case("infinite_loop_detected", 
                              PrettyVerifierOutput(
                                  error_message="Infinite loop detected"))
+
+    shaker = BPFTestShaker(test_suite, iterations=1)
+    shaker.create_tests()
+
+
     try:
         test_suite.run_all_tests()
+        shaker.run_all_tests()
+        shaker.clear()
     except AssertionError as e:
         print(e)
+
+
+
+
+            
+
+    
