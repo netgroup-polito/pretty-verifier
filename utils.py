@@ -61,7 +61,6 @@ def add_line_number(output_raw, c_source_files):
                         if rep == 0:
                             c_file['repetitions'][line] += 1
                             modified_line = f";{c_line_index+1}{line} in file {c_file['file_name']}"
-                            print(modified_line)
                             c_file['matches'] += 1
                             break
                         else:
