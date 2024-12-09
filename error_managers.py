@@ -1,5 +1,6 @@
 from utils import print_error, get_section_name
 import re
+import math
 
 def not_found(error):
     print_error(f"Error not managed -> {error}")
@@ -726,29 +727,56 @@ def kernel_function_pointer_type(output, func_name, pointer_type, additional_inf
             return
 '''
 def math_between_pointer(output, pointer_type, value):
+    int_value = math.log2(abs(int(value)))
+    minus = ''
+    if int(value) < 0:
+        minus = '-'
+    if int_value == round(int_value):
+        value = f"{value} ({minus}2^{int(int_value)})"
+    else:
+        value = f"{value} (about {minus}2^{int(int_value)})"
+
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
+            print_error(f"Accessing {get_type(pointer_type)} with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
             return
       
-def pointer_offset_not_allowed(output, pointer_type, offset):
+def pointer_offset_not_allowed(output, pointer_type, value):
+    int_value = math.log2(abs(int(value)))
+    minus = ''
+    if int(value) < 0:
+        minus = '-'
+    if int_value == round(int_value):
+        value = f"{value} ({minus}2^{int(int_value)})"
+    else:
+        value = f"{value} (about {minus}2^{int(int_value)})"
+
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Accessing {get_type(pointer_type)} pointer with offset {offset}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
+            print_error(f"Accessing {get_type(pointer_type)} with offset {value}, while bounded between ±2^29 (BPF_MAX_VAR_OFF)", location=s)
             return
 
 def math_between_pointer_and_unbounded_register(output, pointer_type):
     suggestion = "Add a check for the index using to access the pointer (array) to be >=0"
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Accessing {get_type(pointer_type)} pointer withoun lower bound check", location=s, suggestion=suggestion)
+            print_error(f"Accessing {get_type(pointer_type)} withoun lower bound check", location=s, suggestion=suggestion)
             return
 
 def value_out_of_bounds(output, value, pointer_type):
+    int_value = math.log2(abs(int(value)))
+    minus = ''
+    if int(value) < 0:
+        minus = '-'
+    if int_value == round(int_value):
+        value = f"{value} ({minus}2^{int(int_value)})"
+    else:
+        value = f"{value} (about {minus}2^{int(int_value)})"
+
     appendix = "The offset is bounded between ±2^29 (BPF_MAX_VAR_OFF)"
     for s in reversed(output):
         if s.startswith(';'):
-            print_error(f"Accessing {get_type(pointer_type)} pointer with offset {value}", location=s, appendix=appendix)
+            print_error(f"Accessing {get_type(pointer_type)} with offset {value}", location=s, appendix=appendix)
             return
 '''       
 def reason_bounds(output, reg_num):
