@@ -320,7 +320,11 @@ class BPFTestShaker:
 
 if __name__ == "__main__":
 
-    test_suite = BPFTestSuite("../ebpf-codebase/not-working/generated", "make", "make clear")
+    cwd = os.getcwd().split('/')
+    base_dir = '/'.join(cwd[:len(cwd)-1])
+    print(base_dir)
+
+    test_suite = BPFTestSuite(base_dir+"/ebpf-codebase/not-working/generated", "make", "make clear")
 
     #invalid variable offset read from stack
     test_suite.add_test_case("invalid_variable_offset_read_from_stack", 
@@ -328,7 +332,7 @@ if __name__ == "__main__":
                                 error_message="Accessing address outside checked memory range",
                                 line_number= 48,
                                 code = "char a = data.message[c];",
-                                file_name = "../ebpf-codebase/not-working/generated/invalid_variable_offset_read_from_stack.bpf.c"
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/invalid_variable_offset_read_from_stack.bpf.c"
                             ))
     #invalid size of register spill
     test_suite.add_test_case("invalid_size_of_register_spill",                              
@@ -336,7 +340,7 @@ if __name__ == "__main__":
                                 error_message="Invalid size of register saved in the stack",
                                 line_number= 16,
                                 code = "index = ctx->data_end;",
-                                file_name = "../ebpf-codebase/not-working/generated/invalid_size_of_register_spill.bpf.c"
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/invalid_size_of_register_spill.bpf.c"
                             ))
     #invalid access to bpf context
     test_suite.add_test_case("invalid_bpf_context_access_sk_msg",                              
@@ -344,7 +348,7 @@ if __name__ == "__main__":
                                 error_message="Invalid access to context parameter",
                                 line_number= 11,
                                 code = "msg->family = (__u32)1;",
-                                file_name = "../ebpf-codebase/not-working/generated/invalid_bpf_context_access_sk_msg.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/invalid_bpf_context_access_sk_msg.bpf.c",
                                 appendix = "Cannot read or write in the context parameter for the sk_msg program type"
                             )) 
     test_suite.add_test_case("invalid_bpf_context_access_socket",                              
@@ -352,7 +356,7 @@ if __name__ == "__main__":
                                 error_message="Invalid access to context parameter",
                                 line_number= 18,
                                 code = "void *data = (void *)(long)skb->data;",
-                                file_name = "../ebpf-codebase/not-working/generated/invalid_bpf_context_access_socket.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/invalid_bpf_context_access_socket.bpf.c",
                                 appendix = "Cannot read or write in the context parameter for the socket program type"
                             )) 
     #type mismatch
@@ -361,7 +365,7 @@ if __name__ == "__main__":
                                 error_message="Wrong argument passed to helper function",
                                 line_number= 53,
                                 code = "p = bpf_map_lookup_elem(&data, &uid);",
-                                file_name = "../ebpf-codebase/not-working/generated/type_mismatch.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/type_mismatch.bpf.c",
                                 appendix = "1° argument (&data) is a pointer to locally defined data (frame pointer), but a pointer to map is expected"
                             ))
     #unreleased reference
@@ -370,7 +374,7 @@ if __name__ == "__main__":
                                 error_message="Reference must be released before exiting",
                                 line_number= 30,
                                 code = "e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);",
-                                file_name = "../ebpf-codebase/not-working/generated/unreleased_reference.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/unreleased_reference.bpf.c",
                             ))
     #gpl reference missing
     test_suite.add_test_case("gpl_delcaration_missing", 
@@ -390,7 +394,7 @@ if __name__ == "__main__":
                                 error_message="Invalid access to map value",
                                 line_number= 41,
                                 code = "char a = message[c];",
-                                file_name = "../ebpf-codebase/not-working/generated/max_value_is_outside_map_value.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/max_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the map value you are trying to access.",
                                 suggestion="Make sure that the index \"c\" has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
                             ), bpf_file="max_value_is_outside_map_value")   
@@ -399,7 +403,7 @@ if __name__ == "__main__":
                                 error_message="Invalid access to map value",
                                 line_number= 41,
                                 code = "char a = *((char*)(message - 5));",
-                                file_name = "../ebpf-codebase/not-working/generated/min_value_is_outside_map_value.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/min_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes under the lower bound of the map value you are trying to access.",
                                 suggestion="Make sure that the index has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes under the lower bound)."
                             ), bpf_file="min_value_is_outside_map_value")
@@ -408,7 +412,7 @@ if __name__ == "__main__":
                                 error_message="Invalid access to packet",
                                 line_number= 16,
                                 code = "s[0] = *((unsigned char*)(data + 100));",
-                                file_name = "../ebpf-codebase/not-working/generated/offset_outside_packet.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/offset_outside_packet.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the packet you are trying to access.",
                                 suggestion="Make sure that the index has been checked to be within the packet allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
                             ))
@@ -418,7 +422,7 @@ if __name__ == "__main__":
                                 error_message="Cannot write into scalar value (not a pointer)",
                                 line_number= 28,
                                 code = "struct dentry *de = f->f_path.dentry;",
-                                file_name = "../ebpf-codebase/not-working/generated/invalid_mem_access_null_ptr_to_mem.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/invalid_mem_access_null_ptr_to_mem.bpf.c",
                             ))
     #unknown func
     test_suite.add_test_case("unknown_func",                              
@@ -426,7 +430,7 @@ if __name__ == "__main__":
                                 error_message="Unknown function bpf_ktime_get_coarse_ns",
                                 line_number= 31,
                                 code = "u64 key = bpf_ktime_get_coarse_ns();",
-                                file_name = "../ebpf-codebase/not-working/generated/unknown_func.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/unknown_func.bpf.c",
                             ))
 
     test_suite.add_test_case("math_between_pointer")#, PrettyVerifierOutput("Accessing pointer to start of XDP packet pointer with offset -2147483648, while bounded between ±2^29 (BPF_MAX_VAR_OFF)"))
@@ -437,7 +441,7 @@ if __name__ == "__main__":
                                 error_message="Accessing pointer to start of XDP packet pointer with offset -2147483648",
                                 line_number= 82,
                                 code = "data += ext_len;",
-                                file_name = "../ebpf-codebase/not-working/generated/value_out_of_bounds.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/value_out_of_bounds.bpf.c",
                             ))
     #subtract pointer from scalar
     test_suite.add_test_case("subtract_pointer_from_scalar",                              
@@ -445,7 +449,7 @@ if __name__ == "__main__":
                                 error_message="Cannot subtract pointer from scalar",
                                 line_number= 9,
                                 code = "scalar -= (unsigned long)ptr;",
-                                file_name = "../ebpf-codebase/not-working/generated/subtract_pointer_from_scalar.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/subtract_pointer_from_scalar.bpf.c",
                             ))
     #bitwise operator on pointer
     test_suite.add_test_case("bitwise_operator_on_pointer_and",                              
@@ -453,21 +457,21 @@ if __name__ == "__main__":
                                 error_message="Bitwise operations (AND) on pointer prohibited",
                                 line_number= 10,
                                 code = "return (int)(long)result;",
-                                file_name = "../ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_and.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_and.bpf.c",
                             ))
     test_suite.add_test_case("bitwise_operator_on_pointer_or",                              
                             PrettyVerifierOutput(
                                 error_message="Bitwise operations (OR) on pointer prohibited",
                                 line_number= 10,
                                 code = "return (int)(long)result;",
-                                file_name = "../ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_or.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_or.bpf.c",
                             ))
     test_suite.add_test_case("bitwise_operator_on_pointer_xor",                              
                             PrettyVerifierOutput(
                                 error_message="Bitwise operations (XOR) on pointer prohibited",
                                 line_number= 10,
                                 code = "return (int)(long)result;",
-                                file_name = "../ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_xor.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/bitwise_operator_on_pointer_xor.bpf.c",
                             ))
     #pointer arithmetic with operator
     test_suite.add_test_case("pointer_arithmetic_with_operator_multiplication",                              
@@ -475,35 +479,35 @@ if __name__ == "__main__":
                                 error_message="Multiplication prohibited in pointer arithmetic",
                                 line_number= 10,
                                 code = "return (int)(long)result;",
-                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_multiplication.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_multiplication.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_division",                              
                             PrettyVerifierOutput(
                                 error_message="Division prohibited in pointer arithmetic",
                                 line_number= 9,
                                 code = "void *result = (void *)(((unsigned long)ptr)/5);",
-                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_division.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_division.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_module",                              
                             PrettyVerifierOutput(
                                 error_message="Module operator prohibited in pointer arithmetic",
                                 line_number= 9,
                                 code = "void *result = (void *)(((unsigned long)ptr)%5);",
-                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_module.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_module.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_left_shift",                              
                             PrettyVerifierOutput(
                                 error_message="Left shift prohibited in pointer arithmetic",
                                 line_number= 10,
                                 code = "return (int)(long)result;",
-                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_left_shift.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_left_shift.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_right_shift",                              
                             PrettyVerifierOutput(
                                 error_message="Right shift prohibited in pointer arithmetic",
                                 line_number= 9,
                                 code = "void *result = (void *)((unsigned long)ptr>>4);",
-                                file_name = "../ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_right_shift.bpf.c",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_right_shift.bpf.c",
                             ))
     #infinite loop detected
     test_suite.add_test_case("infinite_loop_detected", 
@@ -511,13 +515,13 @@ if __name__ == "__main__":
                                  error_message="Infinite loop detected"))
 
     shaker = BPFTestShaker(test_suite, iterations=1)
-    shaker.create_tests()
+    #shaker.create_tests()
 
 
     try:
         test_suite.run_all_tests()
-        shaker.run_all_tests()
-        shaker.clear()
+        #shaker.run_all_tests()
+        #shaker.clear()
     except AssertionError as e:
         print(e)
 

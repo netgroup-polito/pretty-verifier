@@ -9,7 +9,7 @@ def handle_error(output_raw, c_source_files, bytecode_file):
     if error.startswith("old state: "):
         error = output_raw[-4]
     try: 
-        output = add_line_number(output_raw, c_source_files)
+        output = add_line_number(output_raw, f"{c_source_files[0][:-1]}o")
     except Exception as e:
         output = output_raw
         print(e)

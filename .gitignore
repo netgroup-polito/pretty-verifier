@@ -10,4 +10,4 @@ env/
 #Ignore files
 .coverage
 
-pretty-verifier.code-workspace
+*.code-workspace

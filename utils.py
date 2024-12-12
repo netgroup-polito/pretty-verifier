@@ -1,5 +1,6 @@
 import subprocess
 import re
+import os
 
 def print_error(message, location=None, suggestion=None, appendix=None):
 
@@ -12,8 +13,11 @@ def print_error(message, location=None, suggestion=None, appendix=None):
 
     if location!=None:
         n_line = location.split(';')[1].strip('<>')
-        code = location.split(';')[2].strip()+';'
+        print(location.split(';'))
         file_names = location.split(' in file ')
+        code = file_names[0].split(';')[2].strip()
+        code += ';'*(len(location.split(';'))-3)
+        
         file_name = file_names[len(file_names)-1].strip()
         error_message += f"   {n_line} | {code}\n    {' ' * len(n_line)}| in file {file_name}\n"
 
@@ -26,7 +30,8 @@ def print_error(message, location=None, suggestion=None, appendix=None):
 
     print(error_message)
 
-def add_line_number(output_raw, c_source_files):
+
+def add_line_number_old(output_raw, c_source_files):
     if c_source_files == None or len(c_source_files) == 0:
         return output_raw
 
@@ -83,6 +88,47 @@ def add_line_number(output_raw, c_source_files):
     return output
 
 
+def add_line_number(output_raw, obj_file):
+    command = f"llvm-objdump --disassemble -l {obj_file}"
+    output = []
+    try:
+        objdump = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        return
+
+
+    old_line = ""
+    new_line = ""
+    insn_num = None
+    for n, o in enumerate(reversed(output_raw)):
+        if not insn_num: 
+            last_number_pattern = re.search(r"(\d+)\:.*", o)
+            if last_number_pattern:
+                    insn_num = last_number_pattern.group(1)
+        else:
+            if o.startswith(';'):
+                found = False
+                for ob in reversed(objdump.stdout.split('\n')):
+                    if not found and ob.strip().startswith(f"{insn_num}:"):
+                        found = True
+                    if found and ob.strip().startswith(';'):
+                        targets = ob.split(":")
+                        new_line = f";{targets[1]}{o} in file {targets[0][2:]}"
+                        print(new_line)
+                        old_line = n
+                        break
+                break
+
+    for n, o in enumerate(output_raw):
+        if n == len(output_raw)-int(old_line)-1:
+            print(new_line, old_line)
+            output.append(new_line)
+        else:
+            output.append(o)
+
+    return output
+
+
 
 def get_bytecode(bytecode_file):
     if bytecode_file == None:
@@ -100,3 +146,4 @@ def get_section_name(c_source_files):
                 # according to the libbpf docs all the not program related section are the ones related to maps (maps and .maps)
                 if match_pattern and "maps" not in match_pattern.group(1):
                     return match_pattern.group(1)
+
