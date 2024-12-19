@@ -13,7 +13,6 @@ def print_error(message, location=None, suggestion=None, appendix=None):
 
     if location!=None:
         n_line = location.split(';')[1].strip('<>')
-        print(location.split(';'))
         file_names = location.split(' in file ')
         code = file_names[0].split(';')[2].strip()
         code += ';'*(len(location.split(';'))-3)
@@ -114,14 +113,12 @@ def add_line_number(output_raw, obj_file):
                     if found and ob.strip().startswith(';'):
                         targets = ob.split(":")
                         new_line = f";{targets[1]}{o} in file {targets[0][2:]}"
-                        print(new_line)
                         old_line = n
                         break
                 break
 
     for n, o in enumerate(output_raw):
         if n == len(output_raw)-int(old_line)-1:
-            print(new_line, old_line)
             output.append(new_line)
         else:
             output.append(o)
