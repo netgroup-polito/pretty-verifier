@@ -2,18 +2,22 @@ from error_managers import *
 from utils import add_line_number, get_bytecode
 import re
 
-def handle_error(output_raw, c_source_files, bytecode_file):
+def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     
     error = output_raw[-2]
     # managing automatic excalation to debug mode
     if error.startswith("old state: "):
         error = output_raw[-4]
-    try: 
-        output = add_line_number(output_raw, f"{c_source_files[0][:-1]}o")
-    except Exception as e:
-        output = output_raw
-        print(e)
-        print("WARNING: C File modified after compiling, recompile to have the line number\n")
+    
+    if llvm_objdump:
+        output = llvm_objdump
+    else:
+        try: 
+            output = add_line_number(output_raw, f"{c_source_files[0][:-1]}o")
+        except Exception as e:
+            output = output_raw
+            print(e)
+            print("WARNING: C File modified after compiling, recompile to have the line number\n")
     bytecode = get_bytecode(bytecode_file)
 
     invalid_variable_offset_read_from_stack_pattern = re.compile(r'invalid variable-offset(.*?) stack R(\d+) var_off=(.*?) size=(\d+)')
