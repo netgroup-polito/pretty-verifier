@@ -1,4 +1,4 @@
-from utils import print_error, get_section_name
+from utils import print_error, get_section_name, add_line_number
 import re
 import math
 
@@ -152,9 +152,10 @@ def gpl_delcaration_missing():
         f"at the end of the file"
     print_error(message=message, suggestion=suggestion)
 
-def unreleased_reference(output, id, alloc_insn):
+def unreleased_reference(output, id, alloc_insn, output_raw, c_file):
     flag = False
-    for s in reversed(output):
+    o = add_line_number(output_raw, c_file, 0, alloc_insn)
+    for s in reversed(o):
         if s.startswith(f"{alloc_insn}: "):
             flag = True
         if flag and s.startswith(';'):

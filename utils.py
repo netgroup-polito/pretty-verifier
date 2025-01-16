@@ -87,7 +87,7 @@ def add_line_number_old(output_raw, c_source_files):
     return output
 
 
-def add_line_number(output_raw, obj_file, offset=0):
+def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
     command = f"llvm-objdump --disassemble -l {obj_file}"
     output = []
     try:
@@ -103,7 +103,9 @@ def add_line_number(output_raw, obj_file, offset=0):
         if not insn_num: 
             last_number_pattern = re.search(r"(\d+)\:.*", o)
             if last_number_pattern:
-                    insn_num = last_number_pattern.group(1)
+                if insn_start and last_number_pattern.group(1) > insn_start:
+                    continue 
+                insn_num = last_number_pattern.group(1)
         else:
             if o.startswith(';'):
                 found = False
@@ -112,7 +114,11 @@ def add_line_number(output_raw, obj_file, offset=0):
                         found = True
                     if found and ob.strip().startswith(';'):
                         targets = ob.split(":")
-                        new_line = f";{int(targets[1])+offset}{o} in file {targets[0][2:]}"
+                        if offset == 0:
+                            filename = targets[0][2:]
+                        else:
+                            filename = targets[0][2:-9]+'c'
+                        new_line = f";{int(targets[1])+offset}{o} in file {filename}"
                         old_line = n
                         break
                 break

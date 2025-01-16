@@ -10,7 +10,13 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         error = output_raw[-4]
     
     if llvm_objdump:
-        output = llvm_objdump
+        count = 0
+        for l in reversed(llvm_objdump):
+            if l.startswith("processed"):
+                break
+            count -= 1
+        output = llvm_objdump[:count]
+
     else:
         try: 
             output = add_line_number(output_raw, f"{c_source_files[0][:-1]}o")
@@ -41,6 +47,8 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             output = output, 
             id = int(unreleased_reference_pattern.group(1)),
             alloc_insn= unreleased_reference_pattern.group(2), 
+            output_raw=output_raw, 
+            c_file=f"{c_source_files[0][:-1]}o"
         )
         return
     

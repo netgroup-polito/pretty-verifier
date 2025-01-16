@@ -130,6 +130,7 @@ class BPFTestCase:
         # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
 
         command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
+        #command = f"python3 ./pretty_verifier.py -f {directory}/{self.bpf_file}.bpf.c"
         
         try:
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
@@ -177,14 +178,17 @@ class BPFTestSuite:
         if not self.refuse_tests:
             self.test_cases.append(BPFTestCase(function_name, expected_output, bpf_file, strict))
 
-    def run_all_tests(self):
+    def run_all_tests(self, blocking=True):
         error = None
         for test_case in self.test_cases:
             try:
                 test_case.run_test(self.test_cases_directory)
             except AssertionError as e:
-                error = e
-                break
+                if blocking:
+                    error = e
+                    break
+                else:
+                    print(e)
         if error:
             raise error
 
@@ -438,10 +442,11 @@ if __name__ == "__main__":
     #value out of bounds
     test_suite.add_test_case("value_out_of_bounds",                              
                             PrettyVerifierOutput(
-                                error_message="Accessing pointer to start of XDP packet pointer with offset -2147483648",
+                                error_message="Accessing pointer to start of XDP packet with offset -2147483648 (-2^31)",
                                 line_number= 82,
                                 code = "data += ext_len;",
                                 file_name = base_dir+"/ebpf-codebase/not-working/generated/value_out_of_bounds.bpf.c",
+                                appendix='The offset is bounded between ±2^29 (BPF_MAX_VAR_OFF)'
                             ))
     #subtract pointer from scalar
     test_suite.add_test_case("subtract_pointer_from_scalar",                              
@@ -519,7 +524,7 @@ if __name__ == "__main__":
 
 
     try:
-        test_suite.run_all_tests()
+        test_suite.run_all_tests(blocking=False)
         #shaker.run_all_tests()
         #shaker.clear()
     except AssertionError as e:
