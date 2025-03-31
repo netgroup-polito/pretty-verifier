@@ -19,7 +19,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
 
     else:
         try: 
-            output = add_line_number(output_raw, f"{c_source_files[0][:-1]}o")
+            output = add_line_number(output_raw, bytecode_file)
         except Exception as e:
             output = output_raw
             print(e)

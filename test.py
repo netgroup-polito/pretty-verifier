@@ -109,7 +109,6 @@ class PrettyVerifierOutput:
     
     def __str__(self):
         return f"error message: {self.error_message}\nlocation: {self.line_number} | {self.code}\nin file {self.file_name}\nappendix: {self.appendix}\nsuggestion: {self.suggestion}\n"
- 
 
 
 class BPFTestCase:
@@ -129,7 +128,7 @@ class BPFTestCase:
         # command used for coverage
         # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
 
-        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
+        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
         #command = f"python3 ./pretty_verifier.py -f {directory}/{self.bpf_file}.bpf.c"
         
         try:
@@ -150,7 +149,7 @@ class BPFTestCase:
         real_output = self.run_command(directory)
 
         if real_output is None:
-            raise AssertionError(f"Error in running {self.function_name}")
+            raise AssertionError(f"Error in running {self.function_name} \033[91mfailed\033[0m")
 
         output = PrettyVerifierOutput.from_output(real_output)
 
@@ -220,6 +219,7 @@ class BPFTestSuite:
 
     def __len__(self):
         return len(self.test_cases)
+
 
 class BPFTestShaker:
 
@@ -396,11 +396,11 @@ if __name__ == "__main__":
     test_suite.add_test_case("max_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to map value",
-                                line_number= 41,
-                                code = "char a = message[c];",
+                                line_number= 30,
+                                code = "char value = array[i];",
                                 file_name = base_dir+"/ebpf-codebase/not-working/generated/max_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the map value you are trying to access.",
-                                suggestion="Make sure that the index \"c\" has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
+                                suggestion="Make sure that the index \"i\" has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
                             ), bpf_file="max_value_is_outside_map_value")   
     test_suite.add_test_case("min_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
