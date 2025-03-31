@@ -149,7 +149,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         return
     
 
-'''
+    '''
     invalid_network_packet_access_pattern = re.search(r"R(\d+) invalid (.*?) access off=(\d+) size=(\d+)", error)
     if invalid_network_packet_access_pattern:
         invalid_network_packet_access(
@@ -160,7 +160,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             invalid_network_packet_access_pattern.group(4),
         )
         return
-'''
+    '''
 
     misaligned_packet_access_pattern = re.search(r"misaligned packet access off (\d+)+(.*?)+(\d+)+(\d+) size (\d+)", error)
     if misaligned_packet_access_pattern:
@@ -213,7 +213,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     #
     # )    
 
-'''
+    '''
     #todelete maybe BTF
     map_invalid_negative_access_pattern = re.search(r"R(\d+) is (.*?) invalid negative access: off=(\d+)", error)
     if map_invalid_negative_access_pattern:
@@ -240,7 +240,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             invalid_unbounded_valiable_offset_pattern.group(1)
         )    
         return
-'''
+    '''
 
     write_to_change_key_not_allowed_pattern = re.search(r"write to change key R(\d+) not allowed", error)
     if write_to_change_key_not_allowed_pattern:
@@ -304,7 +304,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             )    
         return   
     #todelete ce
-'''
+    '''
     invalid_read_from_stack_pattern = re.search(r"invalid (.*?) read from stack R(\d+) off (\d+)+(\d+) size (\d+)", error)
     if invalid_read_from_stack_pattern:
         invalid_read_from_stack(
@@ -320,7 +320,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             invalid_read_from_stack_pattern.group(1)
             )    
         return 
-'''
+    '''
     min_value_is_negative_2_pattern = re.search(r"R(\d+) min value is negative, either use unsigned or 'var &= const'", error)
     if min_value_is_negative_2_pattern:
         min_value_is_negative_2(output)
@@ -379,7 +379,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             expected_initialized_iter_pattern.group(2)
             ) 
         return
-'''
+    '''
     possibly_null_pointer_to_helper_fun_pattern = re.search(r"Possibly NULL pointer passed to helper arg(\d+)", error)
     if possibly_null_pointer_to_helper_fun_pattern:
         possibly_null_pointer_to_helper_fun(
@@ -396,7 +396,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             rd_of_type_but_expected_pattern.group(3)
             )
         return
-'''
+    '''
     helper_access_to_packet_not_allowed_pattern = re.search(r"helper access to the packet is not allowed", error)
     if helper_access_to_packet_not_allowed_pattern:
         helper_access_to_packet_not_allowed(output)
@@ -445,7 +445,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         return
     
     #todelete nr forse
-'''
+    '''
     func_only_supported_for_fentry_pattern = re.search(r"func (.*?)#(\d+) supported only for fentry/fexit/fmod_ret programs", error)
     if func_only_supported_for_fentry_pattern:
         func_only_supported_for_fentry(
@@ -462,7 +462,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             func_not_supported_for_prog_type_pattern.group(3)    
             )
         return
-'''
+    '''
     invalid_func_pattern = re.search(r"invalid func (.*?)#(\d+)", error)
     if invalid_func_pattern:
         invalid_func(
@@ -480,7 +480,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         return
     
     #todelete nr
-'''
+    '''
     sleep_called_in_non_sleep_prog_pattern = re.search(r"helper call might sleep in a non-sleepable prog", error)
     if sleep_called_in_non_sleep_prog_pattern:
         sleep_called_in_non_sleep_prog(output)
@@ -547,7 +547,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             kernel_fun_expected_pointer_pattern.group(7),
             )
         return
-'''
+    '''
 
     function_has_more_args_pattern = re.search(r"Function (.*?) has (\d+) > (\d+) args", error)
     if function_has_more_args_pattern:
@@ -575,7 +575,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         )
         return
     #todelete btf
-'''
+    '''
     arg_expected_allocated_pointer_pattern = re.search(r"arg#(\d+) expected pointer to allocated object", error)
     if arg_expected_allocated_pointer_pattern:
         arg_expected_allocated_pointer(
@@ -583,7 +583,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(arg_expected_allocated_pointer_pattern.group(1))
         )
         return
-'''
+    '''
     arg_expected_pointer_to_ctx_pattern = re.search(r"arg#(\d+) expected pointer to ctx, but got (.*?)", error)
     if arg_expected_pointer_to_ctx_pattern:
         arg_expected_pointer_to_ctx(
@@ -612,7 +612,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         return
     
     #todelete btf
-'''
+    '''
     arg_reference_type_pattern = re.search(r"arg#(\d+) reference type\('(.*?) (.*?)'\) size cannot be determined: (\d+)", error)
     if arg_reference_type_pattern:
         arg_reference_type(
@@ -632,7 +632,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(len_pair_lead_to_invalid_mem_access_pattern.group(2))
         )
         return
-'''
+    '''
     expected_pointer_to_func_pattern = re.search(r"arg(\d+) expected pointer to func", error)
     if expected_pointer_to_func_pattern:
         expected_pointer_to_func(
@@ -640,7 +640,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(expected_pointer_to_func_pattern.group(1))
         )
         return
-'''
+    '''
     program_must_be_sleepable_pattern = re.search(r"program must be sleepable to call sleepable kfunc (.*?)", error)
     if program_must_be_sleepable_pattern:
         program_must_be_sleepable(
@@ -667,7 +667,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             kernel_function_pointer_type_pattern.group(3)
         )
         return
-'''
+    '''
 
     math_between_pointer_pattern = re.search(r"math between (.*?) pointer and (-?\d+) is not allowed", error)
     if math_between_pointer_pattern:
@@ -697,7 +697,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         )
         return
     #todelete ce
-'''
+    '''
     reason_bounds_pattern = re.search(r"R(\d+) has unknown scalar with mixed signed bounds, pointer arithmetic with it prohibited for !root", error)
     if reason_bounds_pattern:
         reason_bounds(
@@ -747,7 +747,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(pointer_arithmetic_out_of_range_pattern.group(1))
         )
         return
-'''
+    '''
     bit32_pointer_arithmetic_prohibited_pattern = re.search(r"R(\d+) 32-bit pointer arithmetic prohibited", error)
     if bit32_pointer_arithmetic_prohibited_pattern:
         bit32_pointer_arithmetic_prohibited(
@@ -781,7 +781,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(subtract_pointer_from_scalar_pattern.group(1))
         )
         return
-'''
+    '''
     subtraction_from_stack_pointer_pattern = re.search(r"R(\d+) subtraction from stack pointer prohibited", error)
     if subtraction_from_stack_pointer_pattern:
         subtraction_from_stack_pointer(
@@ -789,7 +789,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(subtraction_from_stack_pointer_pattern.group(1))
         )
         return
-'''
+    '''
     bitwise_operator_on_pointer_pattern = re.search(r"R(\d+) bitwise operator (.*?) on pointer prohibited", error)
     if bitwise_operator_on_pointer_pattern:
         bitwise_operator_on_pointer(
@@ -841,7 +841,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         )
         return
     #todelete ce
-'''
+    '''
     div_by_zero_pattern = re.search(r"div by zero", error)
     if div_by_zero_pattern:
         div_by_zero(
@@ -856,7 +856,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             int(invalid_shift_pattern.group(1))
         )
         return
-'''
+    '''
     pointer_comparison_prohibited_pattern = re.search(r"R(\d+) pointer comparison prohibited", error)
     if pointer_comparison_prohibited_pattern:
         pointer_comparison_prohibited(
