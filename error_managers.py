@@ -753,6 +753,7 @@ def pointer_arithmetic_out_of_range(output, reg_num):
             print_error(f"Pointer arithmetic of map value goes out of range", location=s)
             return
 '''
+
 def bit32_pointer_arithmetic_prohibited(output, reg_num):
     location = get_line(output)
     print_error(f"32-bit ALU operations on pointers produce (meaningless) scalars", location)
