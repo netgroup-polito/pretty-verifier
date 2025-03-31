@@ -848,7 +848,7 @@ def subtraction_from_stack_pointer(output, reg_num):
             return
         
 def bitwise_operator_on_pointer(output, reg_num, operator):
-    appendix = "Only addiction and subtraction are allowed"
+    appendix = "Only addition and subtraction are allowed"
     
     if operator == '&=':
         displayed_operator = 'AND'
@@ -866,7 +866,7 @@ def bitwise_operator_on_pointer(output, reg_num, operator):
 
 def pointer_arithmetic_with_operator(output, reg_num, operator):
     appendix = None
-    suggestion = "Only addiction and subtraction are allowed"
+    suggestion = "Only addition and subtraction are allowed"
     if operator == '*=':
         displayed_operator = 'Multiplication'
     elif operator == '/=':
