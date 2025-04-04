@@ -514,6 +514,15 @@ if __name__ == "__main__":
                                 code = "void *result = (void *)((unsigned long)ptr>>4);",
                                 file_name = base_dir+"/ebpf-codebase/not-working/generated/pointer_arithmetic_with_operator_right_shift.bpf.c",
                             ))
+
+    test_suite.add_test_case("unbounded_mem_access_umax_missing",                              
+                            PrettyVerifierOutput(
+                                error_message="Upper bound check missing",
+                                line_number= 53,
+                                code = "char a = message[c];",
+                                file_name = base_dir+"/ebpf-codebase/not-working/generated/unbounded_mem_access_umax_missing.bpf.c",
+                                suggestion="Consider adding an upper bound memory check before accessing memory"
+                            ))
     #infinite loop detected
     test_suite.add_test_case("infinite_loop_detected", 
                              PrettyVerifierOutput(

@@ -985,3 +985,9 @@ def invalid_bpf_context_access(output, c_source_files):
         if s.startswith(';'):
             print_error(f"Invalid access to context parameter", location=s, appendix=appendix, suggestion=suggestion)
             return
+
+
+def unbounded_mem_access_umax_missing(output):
+    location = get_line(output)
+    suggestion="Consider adding an upper bound memory check before accessing memory"
+    print_error("Upper bound check missing", location=location, suggestion=suggestion)

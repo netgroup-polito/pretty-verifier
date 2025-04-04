@@ -955,5 +955,10 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         invalid_bpf_context_access(output, c_source_files)
         return
 
+    unbounded_mem_access_umax_missing_pattern = re.search(r"R(\d+) unbounded memory access, make sure to bounds check any such access", error)
+    if unbounded_mem_access_umax_missing_pattern:
+        unbounded_mem_access_umax_missing(output)
+        return
+        
 
     not_found(error)
