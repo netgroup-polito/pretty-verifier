@@ -1,9 +1,10 @@
 # Pretty Verifier
 
-Make pretty the eBPF verifier errors
+Make pretty the eBPF verifier error messages
 
 # Requirements
 
+- Python3
 - eBPF developement tools
 
 If you are on Debian/Ubuntu, you can run:
@@ -20,7 +21,6 @@ sudo apt install linux-headers-$(uname -r) \
                  linux-tools-common \
                  linux-tools-generic
 ```
-- Python3
 
 ## Usage
 
