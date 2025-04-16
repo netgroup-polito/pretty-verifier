@@ -5,6 +5,21 @@ Make pretty the eBPF verifier errors
 # Requirements
 
 - eBPF developement tools
+
+If you are on Debian/Ubuntu, you can run:
+
+```bash
+sudo apt install linux-headers-$(uname -r) \
+                 libbpfcc-dev \
+                 libbpf-dev \
+                 llvm \
+                 clang \
+                 gcc-multilib \
+                 build-essential \
+                 linux-tools-$(uname -r) \
+                 linux-tools-common \
+                 linux-tools-generic
+```
 - Python3
 
 ## Usage

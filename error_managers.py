@@ -170,21 +170,6 @@ def reg_not_ok(output, register):
     print_error("Accessing uninitialized value", location, appendix=appendix)
     return
 
-# todo should add suggestion on how to turn on jit     
-'''
-def jit_required_for_kfunc(output):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Jit compilation required when calling this kernel function", location=s)
-            return 
-
-# todo should add suggestion on how to turn off jit
-def jit_not_supporting_kfunc(output):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Jit compilation not supporting when calling this kernel function", location=s)
-            return 
-'''
 #todo suggestion should account for other gpl-compatible programs
 def kfunc_require_gpl_program(output):
     suggestion = "You can add\n"+\
@@ -351,6 +336,7 @@ def combined_stack_size_exceeded(frames, size):
 
 def invalid_buffer_access(output, offset):
     appendix = f"Offset is {offset}, but is should be negative"
+    location = get_line(output)
     print_error(f"Invalid access to buffer", location, appendix=appendix)
 
 
@@ -421,14 +407,7 @@ def atomic_stores_into_type_not_allowed(output, type):
     location = get_line(output)
     print_error(f"Cannot store value into {get_type(type)}", location)
 
-'''        
-def invalid_read_from_stack(output, indirect):
-    indirect = indirect == "indirect"
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Invalid read from stack, variable must be initialized")
-            return
-'''
+
 def min_value_is_negative_2(output):
     suggestion = "Use unsigned or 'var &= const'"
     location = get_line(output)
@@ -516,22 +495,10 @@ def verbose_invalid_scalar(output, ctx, reg, val, range):
 def write_into_map_forbidden(output):
     location = get_line(output)
     print_error(f"Cannot write into map in read only program", location)
-
-
-'''
-def func_only_supported_for_fentry(output, func):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Function {func} is supported only for fentry/fexit/fmod_ret programs", location=s)
-            return
-def func_not_supported_for_prog_type(output, func, prog_type):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Function {func} is not supported for program type {prog_type}", location=s)
-            return
-'''       
+  
 def invalid_func(output, func):
     suggestion = "Your kernel is too old or the helper has been compiled out"
+    location = get_line(output)
     print_error(f"Invalid function {func}", location, suggestion=suggestion)
 
         
@@ -540,39 +507,11 @@ def unknown_func(output, func, c_source_files):
     suggestion = f"Check if the helper function you are using is compatible with the program type {section_name} at https://man7.org/linux/man-pages/man7/bpf-helpers.7.html.\nOtherwise, your kernel might be too old or the helper has been compiled out."
     location = get_line(output)
     print_error(f"Unknown function {func}", location, suggestion=suggestion)
-
-
-'''      
-def sleep_called_in_non_sleep_prog(output):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Helper function might sleep in non-sleepable program", location=s)
-            return
-'''     
+   
 def tail_call_lead_to_leak(output):
     location = get_line(output)
     print_error(f"Tail call of helper function would lead to reference leak", location)
 
-
-'''
-def invalid_return_type(output, type, func):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Function {func} has an invalid return type {type}", location=s)
-            return
-        
-def unknown_return_type(output, type, func):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Function {func} has an unknown return type {type}", location=s)
-            return
-
-def kernel_fun_pointer_not_supported(output, fun, arg, btf, btf_name):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Argument n°{arg} of kernel function {fun} has pointer of type {btf} {btf_name} that is not supported", location=s)
-            return
-'''
 def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
     if void:
         void = f"{void}, "
@@ -588,13 +527,7 @@ def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
             else:
                 print_error(f"Argument n°{arg} has pointer of type {btf} {btf_name} must point to {void}scalar, or struct with scalar", location=s)
             return
-'''
-def kernel_fun_expected_pointer(output, fun, arg, btf, btf_name, btf_expected, btf_name_expected):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Argument n°{arg} of kernel function {fun} has pointer of type {btf} {btf_name}, while {btf_expected} {btf_name_expected} is expected", location=s)
-            return
-'''
+
 def function_has_more_args(output, func, current_args, max_args):
     location = get_line(output)
     print_error(f"Function {func} has {current_args} arguments, which exceeds the maximum of {max_args}", location)
@@ -608,13 +541,6 @@ def possibly_null_pointer_passed(output, arg_num):
     suggestion = "Add a not null check of the argument"
     location = get_line(output)
     print_error(f"Argument n°{arg_num} of kernel function may be null", location, suggestion=suggestion)
-'''
-def arg_expected_allocated_pointer(output, arg_num):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Argument n°{arg_num} of kernel function expected pointer to allocated BTF object", location=s)
-            return
-'''
 
 def arg_expected_pointer_to_ctx(output, arg_num, received_type):
     location = get_line(output)
@@ -629,19 +555,7 @@ def arg_is_expected(output, arg_num, actual_type, expected_type):
     location = get_line(output)
     print_error(f"Argument n°{arg_num} of kernel function is {get_type(actual_type)}, expected {get_type(expected_type)} or socket", location)
 
-'''
-def arg_reference_type(output, arg_num, type_name, type_detail, size):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Argument n°{arg_num} of kernel function reference type {type_name} {type_detail} size cannot be determined: {size}", location=s)
-            return
 
-def len_pair_lead_to_invalid_mem_access(output, memory_arg_num, len_arg_num):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Argument pair n°{memory_arg_num} and n°{len_arg_num} usage lead to invalid memory access", location=s)
-            return
-'''
 def expected_pointer_to_func(output, arg_num):    
     location = get_line(output)
     print_error(f"Argument n°{arg_num} expected pointer to function", location)
@@ -662,13 +576,6 @@ def kernel_function_unhandled_dynamic_return_type(output, func_name):
     print_error(f"Kernel function {func_name} has an unhandled dynamic return type", location)
 
 
-'''
-def kernel_function_pointer_type(output, func_name, pointer_type, additional_info):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Kernel function {func_name} returns pointer type {pointer_type} {additional_info} is not supported", location=s)
-            return
-'''
 def math_between_pointer(output, pointer_type, value):
     int_value = math.log2(abs(int(value)))
     minus = ''
@@ -684,6 +591,7 @@ def math_between_pointer(output, pointer_type, value):
 
       
 def pointer_offset_not_allowed(output, pointer_type, value):
+    location = get_line(output)
     int_value = math.log2(abs(int(value)))
     minus = ''
     if int(value) < 0:
@@ -715,44 +623,6 @@ def value_out_of_bounds(output, value, pointer_type):
     location = get_line(output)
     print_error(f"Accessing {get_type(pointer_type)} with offset {value}", location, appendix=appendix)
 
-
-'''       
-def reason_bounds(output, reg_num):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Unknown scalar with mixed signed bounds, pointer arithmetic with it prohibited for !root", location=s)
-            return
-        
-def reason_type(output, reg_num):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Pointer not supported for alu operations", location=s)
-            return
-        
-def reason_paths(output, reg_num, operation):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"{operation.capitalize()} from different maps, paths or scalars, pointer arithmetic with it prohibited for !root", location=s)
-            return
-        
-def reason_limit(output, reg_num, operation):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"{operation.capitalize()} beyond pointer bounds, pointer arithmetic with it prohibited for !root", location=s)
-            return
-        
-def reason_stack(output, reg_num):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Speculative verification couldn't be pushed, pointer arithmetic with it prohibited for !root", location=s)
-            return
-    
-def pointer_arithmetic_out_of_range(output, reg_num):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Pointer arithmetic of map value goes out of range", location=s)
-            return
-'''
 
 def bit32_pointer_arithmetic_prohibited(output, reg_num):
     location = get_line(output)
@@ -838,35 +708,15 @@ def partial_copy_of_pointer(output, reg_num):
     print_error(f"Cannot cast pointer into a smaller size register", location, appendix=appendix)
 
 
-'''
-def div_by_zero(output):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error("Division by zero not allowed", location=s)
-            return
-
-def invalid_shift(output, shift_value):
-    appendix = "Shift must be >= 0 and < of the size of the register"
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Invalid shift operation of {shift_value}", location=s, appendix=appendix)
-            return
-'''
 def pointer_comparison_prohibited(output, reg_num):
     appendix = "It's only allowed for packet pointers"
     location = get_line(output)
     print_error(f"Comparison between two pointer is not allowed", location, appendix=appendix)
 
-'''
-def bpf_ld_instructions_not_allowed(output):
-    for s in reversed(output):
-        if s.startswith(';'):
-            print_error(f"Program type doesn't allow this operations: they can only appear when the context is a socket buffer", location=s)
-            return
-'''
+
 def leaks_addr_as_return_value(output):
     location = get_line(output)
-    print_error("Program cannot return pointer value", location=s)
+    print_error("Program cannot return pointer value", location)
 
 
 def async_callback_register_not_known(output, type):
