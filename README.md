@@ -1,6 +1,6 @@
 # Pretty Verifier
 
-Make pretty the eBPF verifier errors
+Make pretty the eBPF verifier error messages
 
 # Requirements
 
