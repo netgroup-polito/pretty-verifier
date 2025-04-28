@@ -1,0 +1,22 @@
+NOTICE
+
+This project includes code that is subject to third-party licenses:
+
+---
+
+Portions of this project are derived from software originally licensed under the Apache License, Version 2.0:
+
+- [[Learning eBPF](https://github.com/lizrice/learning-ebpf)] (based on Apache 2.0 licensed code, modified by Politecnico di Torino)
+  The original software was distributed under the terms of the Apache License 2.0, available at:
+  http://www.apache.org/licenses/LICENSE-2.0
+
+---
+
+Portions of this project are derived from software originally licensed under the MIT License:
+
+- [[BPF Verifier errors](https://github.com/getanteon/bpf-verifier-errors)] (based on MIT licensed code)
+  The original MIT license terms are available at:
+  https://opensource.org/licenses/MIT
+
+---
+

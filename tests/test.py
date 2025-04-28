@@ -1,3 +1,17 @@
+# Copyright 2024-2025 Politecnico di Torino
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import subprocess
 import re
 import random
@@ -128,7 +142,7 @@ class BPFTestCase:
         # command used for coverage
         # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
 
-        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
+        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ../pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
         #command = f"python3 ./pretty_verifier.py -f {directory}/{self.bpf_file}.bpf.c"
         
         try:
@@ -324,26 +338,16 @@ class BPFTestShaker:
 
 if __name__ == "__main__":
 
-    base_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-    default_rel_path = "ebpf-codebase/not-working/generated/"
+    path = os.path.abspath("./test_cases")
 
-    if len(sys.argv) > 1:
-        input_path = sys.argv[1]
-        if os.path.isabs(input_path):
-            path = input_path
-        else:
-            path = os.path.abspath(os.path.join(base_dir, input_path))
-    else:
-        path = os.path.abspath(os.path.join(base_dir, default_rel_path))
-
-
+    print(f"Using path: {path}")
     test_suite = BPFTestSuite(path, "make", "make clear")
 
     #invalid variable offset read from stack
     test_suite.add_test_case("invalid_variable_offset_read_from_stack", 
                             PrettyVerifierOutput(
                                 error_message="Accessing address outside checked memory range",
-                                line_number= 48,
+                                line_number= 64,
                                 code = "char a = data.message[c];",
                                 file_name = path+"/invalid_variable_offset_read_from_stack.bpf.c"
                             ))
@@ -351,7 +355,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_size_of_register_spill",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid size of register saved in the stack",
-                                line_number= 16,
+                                line_number= 32,
                                 code = "index = ctx->data_end;",
                                 file_name = path+"/invalid_size_of_register_spill.bpf.c"
                             ))
@@ -359,7 +363,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_bpf_context_access_sk_msg",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to context parameter",
-                                line_number= 11,
+                                line_number= 27,
                                 code = "msg->family = (__u32)1;",
                                 file_name = path+"/invalid_bpf_context_access_sk_msg.bpf.c",
                                 appendix = "Cannot read or write in the context parameter for the sk_msg program type"
@@ -367,7 +371,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_bpf_context_access_socket",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to context parameter",
-                                line_number= 18,
+                                line_number= 21,
                                 code = "void *data = (void *)(long)skb->data;",
                                 file_name = path+"/invalid_bpf_context_access_socket.bpf.c",
                                 appendix = "Cannot read or write in the context parameter for the socket program type"
@@ -376,7 +380,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("type_mismatch",                              
                             PrettyVerifierOutput(
                                 error_message="Wrong argument passed to helper function",
-                                line_number= 53,
+                                line_number= 56,
                                 code = "p = bpf_map_lookup_elem(&data, &uid);",
                                 file_name = path+"/type_mismatch.bpf.c",
                                 appendix = "1° argument (&data) is a pointer to locally defined data (frame pointer), but a pointer to map is expected"
@@ -385,7 +389,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("unreleased_reference",                              
                             PrettyVerifierOutput(
                                 error_message="Reference must be released before exiting",
-                                line_number= 30,
+                                line_number= 33,
                                 code = "e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);",
                                 file_name = path+"/unreleased_reference.bpf.c",
                             ))
@@ -405,7 +409,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("max_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to map value",
-                                line_number= 30,
+                                line_number= 35,
                                 code = "char value = array[i];",
                                 file_name = path+"/max_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the map value you are trying to access.",
@@ -414,7 +418,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("min_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to map value",
-                                line_number= 41,
+                                line_number= 46,
                                 code = "char a = *((char*)(message - 5));",
                                 file_name = path+"/min_value_is_outside_map_value.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes under the lower bound of the map value you are trying to access.",
@@ -423,7 +427,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("offset_outside_packet",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to packet",
-                                line_number= 16,
+                                line_number= 32,
                                 code = "s[0] = *((unsigned char*)(data + 100));",
                                 file_name = path+"/offset_outside_packet.bpf.c",
                                 appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the packet you are trying to access.",
@@ -433,7 +437,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem",                              
                             PrettyVerifierOutput(
                                 error_message="Cannot write into scalar value (not a pointer)",
-                                line_number= 28,
+                                line_number= 31,
                                 code = "struct dentry *de = f->f_path.dentry;",
                                 file_name = path+"/invalid_mem_access_null_ptr_to_mem.bpf.c",
                             ))
@@ -441,7 +445,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("unknown_func",                              
                             PrettyVerifierOutput(
                                 error_message="Unknown function bpf_ktime_get_coarse_ns",
-                                line_number= 31,
+                                line_number= 34,
                                 code = "u64 key = bpf_ktime_get_coarse_ns();",
                                 file_name = path+"/unknown_func.bpf.c",
                             ))
@@ -452,7 +456,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("value_out_of_bounds",                              
                             PrettyVerifierOutput(
                                 error_message="Accessing pointer to start of XDP packet with offset -2147483648 (-2^31)",
-                                line_number= 82,
+                                line_number= 85,
                                 code = "data += ext_len;",
                                 file_name = path+"/value_out_of_bounds.bpf.c",
                                 appendix='The offset is bounded between ±2^29 (BPF_MAX_VAR_OFF)'
@@ -461,7 +465,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("subtract_pointer_from_scalar",                              
                             PrettyVerifierOutput(
                                 error_message="Cannot subtract pointer from scalar",
-                                line_number= 9,
+                                line_number= 25,
                                 code = "scalar -= (unsigned long)ptr;",
                                 file_name = path+"/subtract_pointer_from_scalar.bpf.c",
                             ))
@@ -469,21 +473,21 @@ if __name__ == "__main__":
     test_suite.add_test_case("bitwise_operator_on_pointer_and",                              
                             PrettyVerifierOutput(
                                 error_message="Bitwise operations (AND) on pointer prohibited",
-                                line_number= 10,
+                                line_number= 26,
                                 code = "return (int)(long)result;",
                                 file_name = path+"/bitwise_operator_on_pointer_and.bpf.c",
                             ))
     test_suite.add_test_case("bitwise_operator_on_pointer_or",                              
                             PrettyVerifierOutput(
                                 error_message="Bitwise operations (OR) on pointer prohibited",
-                                line_number= 10,
+                                line_number= 26,
                                 code = "return (int)(long)result;",
                                 file_name = path+"/bitwise_operator_on_pointer_or.bpf.c",
                             ))
     test_suite.add_test_case("bitwise_operator_on_pointer_xor",                              
                             PrettyVerifierOutput(
                                 error_message="Bitwise operations (XOR) on pointer prohibited",
-                                line_number= 10,
+                                line_number= 26,
                                 code = "return (int)(long)result;",
                                 file_name = path+"/bitwise_operator_on_pointer_xor.bpf.c",
                             ))
@@ -491,35 +495,35 @@ if __name__ == "__main__":
     test_suite.add_test_case("pointer_arithmetic_with_operator_multiplication",                              
                             PrettyVerifierOutput(
                                 error_message="Multiplication prohibited in pointer arithmetic",
-                                line_number= 10,
+                                line_number= 26,
                                 code = "return (int)(long)result;",
                                 file_name = path+"/pointer_arithmetic_with_operator_multiplication.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_division",                              
                             PrettyVerifierOutput(
                                 error_message="Division prohibited in pointer arithmetic",
-                                line_number= 9,
+                                line_number= 25,
                                 code = "void *result = (void *)(((unsigned long)ptr)/5);",
                                 file_name = path+"/pointer_arithmetic_with_operator_division.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_module",                              
                             PrettyVerifierOutput(
                                 error_message="Module operator prohibited in pointer arithmetic",
-                                line_number= 9,
+                                line_number= 25,
                                 code = "void *result = (void *)(((unsigned long)ptr)%5);",
                                 file_name = path+"/pointer_arithmetic_with_operator_module.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_left_shift",                              
                             PrettyVerifierOutput(
                                 error_message="Left shift prohibited in pointer arithmetic",
-                                line_number= 10,
+                                line_number= 26,
                                 code = "return (int)(long)result;",
                                 file_name = path+"/pointer_arithmetic_with_operator_left_shift.bpf.c",
                             ))
     test_suite.add_test_case("pointer_arithmetic_with_operator_right_shift",                              
                             PrettyVerifierOutput(
                                 error_message="Right shift prohibited in pointer arithmetic",
-                                line_number= 9,
+                                line_number= 25,
                                 code = "void *result = (void *)((unsigned long)ptr>>4);",
                                 file_name = path+"/pointer_arithmetic_with_operator_right_shift.bpf.c",
                             ))
@@ -527,7 +531,7 @@ if __name__ == "__main__":
     test_suite.add_test_case("unbounded_mem_access_umax_missing",                              
                             PrettyVerifierOutput(
                                 error_message="Upper bound check missing",
-                                line_number= 53,
+                                line_number= 69,
                                 code = "char a = message[c];",
                                 file_name = path+"/unbounded_mem_access_umax_missing.bpf.c",
                                 suggestion="Consider adding an upper bound memory check before accessing memory"
@@ -537,7 +541,7 @@ if __name__ == "__main__":
                              PrettyVerifierOutput(
                                  error_message="Infinite loop detected"))
 
-    shaker = BPFTestShaker(test_suite, iterations=1)
+    # shaker = BPFTestShaker(test_suite, iterations=1)
     #shaker.create_tests()
 
 
