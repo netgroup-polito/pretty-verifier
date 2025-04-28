@@ -16,6 +16,7 @@ Below is an overview of where Pretty Verifier fits into the eBPF development wor
 
 By analyzing the `.c` file, the compiled `.o` file, and the verifier output, Pretty Verifier returns enhanced error messages that make debugging easier and faster.
 
+
 # Requirements
 
 - Python3
@@ -35,6 +36,8 @@ sudo apt install linux-headers-$(uname -r) \
                  linux-tools-common \
                  linux-tools-generic
 ```
+## Kernel Version
+The current version of Pretty Verifier works best with distributions using the kernel version 6.8, but it partially works also for older and newer kernel versions.
 
 ## Usage
 
@@ -63,7 +66,7 @@ bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/
 In order to avoid adding the path of the verifier each time calling it, you can add a pretty_verifier alias.
 
 ```bash
-echo 'alias pretty_verifier="python3 /path/to/pretty_verifier/pretty_verifier.py"' >> ~/.bashrc
+echo 'alias pretty-verifier="python3 /path/to/pretty_verifier/pretty_verifier.py"' >> ~/.bashrc
 ```
 
 So now you can use this notation:
@@ -71,12 +74,12 @@ So now you can use this notation:
 Pipe with `2>&1 |` in case of `stderr` output (like `bpftool load`)
 
 ```bash
-bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | pretty_verifier -c your_bpf_source.c -o your_bpf_object.o
+bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | pretty-verifier -c your_bpf_source.c -o your_bpf_object.o
 ```
 Custom C user space program, with `libbpf` (printing to `stdin`)
 
 ```bash
-./your_program | pretty_verifier -c your_bpf_source.c -o your_bpf_object.o
+./your_program | pretty-verifier -c your_bpf_source.c -o your_bpf_object.o
 ```
 
 

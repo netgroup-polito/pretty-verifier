@@ -4,8 +4,19 @@ This folder contains the testing utilities developed alongside **Pretty Verifier
 
 ## Running Tests
 
-To run all tests, simply execute:
-
+Move to the test folder:
+```bash
+cd test_cases/
+```
+Compile the source files:
+```bash
+make
+```
+Move back to the test folder:
+```bash
+cd ..
+```
+To run all tests, execute:
 ```bash
 python3 test.py
 ```
@@ -25,7 +36,5 @@ This will automatically run the available test cases and check the Pretty Verifi
   Use the following commands:
 
     - `make`: To compile the object files.
-    - `make clean`: To remove the `vmlinux` file and other generated files.
+    - `make clean`: To remove the `vmlinux` file and the other generated `.o` object files.
 
-- **`full.sh`**:  
-  A script that runs the same test but with full mode activated, providing a more detailed analysis.
