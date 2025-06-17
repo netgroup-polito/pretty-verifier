@@ -37,7 +37,8 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         except Exception as e:
             output = output_raw
             print(e)
-            print("WARNING: C File modified after compiling, recompile to have the line number\n")
+            return
+            # print("WARNING: C File modified after compiling, recompile to have the line number\n")
     bytecode = get_bytecode(bytecode_file)
 
     invalid_variable_offset_read_from_stack_pattern = re.compile(r'invalid variable-offset(.*?) stack R(\d+) var_off=(.*?) size=(\d+)')

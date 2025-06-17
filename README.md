@@ -53,17 +53,17 @@ Here are examples for the two main scenarios:
 1. Pipe with `2>&1 |` in case of `stderr` output (like `bpftool load`)
 
 ```bash
-bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty_verifier.py -c your_bpf_source.c -o your_bpf_object.o
+bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty-verifier/pretty_verifier.py -c your_bpf_source.c -o your_bpf_object.o
 ```
 2. Custom C user space program, with `libbpf` (printing to `stdin`)
 
 ```bash
-./your_program | python3 path/to/pretty_verifier.py -c your_bpf_source.c -o your_bpf_object.o
+./your_program | python3 path/to/pretty-verifier/pretty_verifier.py -c your_bpf_source.c -o your_bpf_object.o
 ```
 If your eBPF program is split into multiple source files, you can add them in the command as shown below
 
 ```bash
-bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty_verifier.py -c your_bpf_source.c your_bpf_library.h -o your_bpf_object.o
+bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty-verifier/pretty_verifier.py -c your_bpf_source.c your_bpf_library.h -o your_bpf_object.o
 ```
 If you've saved the verifier log into a file (e.g., verifier.log), use the --logfile (-l) option:
 ```
@@ -76,7 +76,7 @@ python3 path/to/pretty_verifier.py -l verifier.log -c your_bpf_source.c -o your_
 In order to avoid adding the path of the verifier each time calling it, you can add a pretty_verifier alias.
 
 ```bash
-echo 'alias pretty-verifier="python3 /path/to/pretty_verifier/pretty_verifier.py"' >> ~/.bashrc
+echo 'alias pretty-verifier="python3 /path/to/pretty-verifier/pretty_verifier.py"' >> ~/.bashrc
 ```
 
 So now you can use this notation:
@@ -93,4 +93,52 @@ Custom C user space program, with `libbpf` (printing to `stdin`)
 ```
 
 
+## Loader Script Generator
 
+The `generate_bpf_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
+
+### Script generation
+
+To generate a loader script:
+
+```bash
+python3 path/to/generate_bpf_loader.py \
+    --output-dir <output_directory> \
+    [--script-name <script_name>] \
+    [--load-line "<custom_load_command>"]
+```
+
+- `--output-dir` (**required**): directory where the script will be created.
+- `--script-name`: name of the generated script (default: `load.sh`).
+- `--load-command`: custom command used to load the eBPF program (optional). By default, the generated script uses `sudo bpftool prog load`.
+
+### Example
+
+Generate a loader script named `load.sh` from the **current directory**:
+
+```bash
+python3 generate_bpf_loader.py --output-dir path/to/develpement/directory
+```
+
+Generate a loader script from the **developement directory**:
+
+```bash
+python3 path/to/pretty-verifier/generate_bpf_loader.py --output-dir .
+```
+
+Generate a loader script from the **current directory** with a **custom name** and **custom load command**:
+
+```bash
+python3 path/to/pretty-verifier/generate_bpf_loader.py --output-dir ./scripts --script-name my_loader.sh --load-line "sudo bpftool prog load"
+```
+
+
+### Script usage
+
+The generated script accepts one or two arguments:
+
+```bash
+./load.sh <source.c> [object.o]
+```
+- The `<source.c>` argument is required. If only this is provided, the corresponding `.o` filename is inferred by replacing the `.c` extension with `.o`.  
+- If the optional `[object.o]` argument is also provided, it overrides the inferred object filename.

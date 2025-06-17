@@ -107,7 +107,7 @@ def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
     try:
         objdump = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
-        return
+        raise Exception(f"ERROR: Invalid object file {obj_file}")
 
 
     old_line = "0"
