@@ -60,6 +60,11 @@ If your eBPF program is compiled from multiple files, you can add them in the co
 ```bash
 bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty_verifier.py -c your_bpf_source.c your_bpf_library.h -o your_bpf_object.o
 ```
+If you've saved the verifier log into a file (e.g., verifier.log), use the --logfile (-l) option:
+```
+python3 path/to/pretty_verifier.py -l verifier.log -c your_bpf_source.c -o your_bpf_object.o
+```
+
 
 ## Add pretty_verifier alias
 

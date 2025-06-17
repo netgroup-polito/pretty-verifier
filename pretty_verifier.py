@@ -38,18 +38,29 @@ def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
 
 def main():
     parser = argparse.ArgumentParser(description="Load an eBPF program and interpret verifier errors.")
-    # parser.add_argument("-c", "--source", required=False, help="The C source file (e.g., hello.bpf.c)")
+    parser.add_argument("-l", "--logfile", required=False, help="The eBPF verifier log file when used with no pipe")
     parser.add_argument("-c", "--source", nargs="+", required=False, help="The C source files (e.g., hello.bpf.c hello_helpers.c)")
     parser.add_argument("-o", "--bytecode", required=False, help="The result of the clang compilation (e.g., hello.bpf.o)")
     parser.add_argument("-f", "--full-mode", required=False, help="Enable test before compilation mode (requires C source file with entry point)")
 
     args = parser.parse_args()
+    logfile = args.logfile
+    if logfile:
+        try:
+            with open(logfile, 'r') as f:
+                output = f.readlines()
+        except FileNotFoundError:
+            print(f"Error: Log file '{logfile}' not found.")
+            sys.exit(1)
+    else:
+        output = sys.stdin
+        
     c_source_files = args.source
     bytecode_file = args.bytecode
     full_mode = args.full_mode
 
     if not full_mode:
-        process_input(c_source_files, bytecode_file, sys.stdin)
+        process_input(c_source_files, bytecode_file, output)
     else:
         output, llvm_objdump = get_output(full_mode)
         process_input(full_mode, bytecode_file, output, llvm_objdump)
