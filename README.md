@@ -81,7 +81,7 @@ To generate a loader script:
 
 ```bash
 python3 generate_loader.py \
-    --output-dir <output_directory> \
+    [--output-dir <output_directory>] \
     [--script-name <script_name>] \
     [--load-command "<custom_load_command>"]
 ```
