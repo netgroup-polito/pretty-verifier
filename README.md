@@ -73,41 +73,41 @@ python3 path/to/pretty_verifier.py -l verifier.log -c your_bpf_source.c -o your_
 
 ## Loader Script Generator
 
-The `generate_bpf_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
+The `generate_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
 
 ### Script generation
 
 To generate a loader script:
 
 ```bash
-python3 generate_bpf_loader.py \
+python3 generate_loader.py \
     --output-dir <output_directory> \
     [--script-name <script_name>] \
     [--load-command "<custom_load_command>"]
 ```
 
-- `--output-dir` (**required**): directory where the script will be created.
-- `--script-name`: name of the generated script (default: `load.sh`).
-- `--load-command`: custom command used to load the eBPF program (optional). By default, the generated script uses `sudo bpftool prog load`.
+- `--output-dir` (`-d`): directory where the script will be created. By default,it uses the current directory.
+- `--script-name` (`-n`): name of the generated script (default: `load.sh`).
+- `--load-command` (`-l`): custom command used to load the eBPF program (optional). By default, the generated script uses `sudo bpftool prog load`.
 
 ### Example
 
-Generate a loader script named `load.sh` from the **current directory**:
+Generate a loader script named `load.sh` from the **Pretty Verifier directory**:
 
 ```bash
-python3 generate_bpf_loader.py --output-dir path/to/develpement/directory
+python3 generate_loader.py -d path/to/develpement/directory
 ```
 
 Generate a loader script from the **developement directory**:
 
 ```bash
-python3 path/to/pretty-verifier/generate_bpf_loader.py --output-dir .
+python3 path/to/pretty-verifier/generate_loader.py
 ```
 
-Generate a loader script from the **current directory** with a **custom name** and **custom load command**:
+Generate a loader script from the **Pretty Verifier directory** with a **custom name** and **custom load command**:
 
 ```bash
-python3 path/to/pretty-verifier/generate_bpf_loader.py --output-dir ./scripts --script-name my_loader.sh --load-line "sudo bpftool prog load"
+python3 generate_loader.py -d ~/eBPF -n my_loader.sh -l "sudo bootstrap 127.0.0.1"
 ```
 
 

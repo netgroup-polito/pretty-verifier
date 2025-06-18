@@ -42,7 +42,7 @@ def main():
     parser.add_argument(
         "--output-dir", "-d",
         type=str,
-        required=True,
+        default=".",
         help="Directory where the bash script will be created"
     )
     parser.add_argument(
