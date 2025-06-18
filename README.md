@@ -83,7 +83,7 @@ To generate a loader script:
 python3 generate_bpf_loader.py \
     --output-dir <output_directory> \
     [--script-name <script_name>] \
-    [--load-line "<custom_load_command>"]
+    [--load-command "<custom_load_command>"]
 ```
 
 - `--output-dir` (**required**): directory where the script will be created.
