@@ -26,6 +26,5 @@ fi
 BPF_NAME=$1
 
 BPF_OFILE="${BPF_NAME}.o"
-BPF_PATH="/sys/fs/bpf/${BPF_NAME}"
 
 sudo python3  ./../../../pretty-verifier/pretty_verifier.py -f "${BPF_NAME}.c"

@@ -26,6 +26,7 @@ fi
 BPF_NAME=$1
 
 BPF_OFILE="${BPF_NAME}.o"
-BPF_PATH="/sys/fs/bpf/${BPF_NAME}"
+# BPF_PATH="/sys/fs/bpf/${BPF_NAME}"
 
-sudo bpftool prog load "$BPF_OFILE" "$BPF_PATH" 2>&1 | python3  ./../../../pretty-verifier/pretty_verifier.py -c "${BPF_NAME}.c" -o "${BPF_NAME}.o"
+# sudo bpftool prog load "$BPF_OFILE" "$BPF_PATH" 2>&1 | python3  ./../../../pretty-verifier/pretty_verifier.py -c "${BPF_NAME}.c" -o "${BPF_NAME}.o"
+sudo bpftool prog load "$BPF_OFILE" "/dev/null" 2>&1 | python3  ./../../../pretty-verifier/pretty_verifier.py -c "${BPF_NAME}.c" -o "${BPF_NAME}.o"
