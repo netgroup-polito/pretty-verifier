@@ -83,12 +83,14 @@ To generate a loader script:
 python3 generate_loader.py \
     [--output-dir <output_directory>] \
     [--script-name <script_name>] \
-    [--load-command "<custom_load_command>"]
+    [--load-command "<custom_load_command>"] \
+    [--test]
 ```
 
 - `--output-dir` (`-d`): directory where the script will be created. By default,it uses the current directory.
 - `--script-name` (`-n`): name of the generated script (default: `load.sh`).
 - `--load-command` (`-l`): custom command used to load the eBPF program (optional). By default, the generated script uses `sudo bpftool prog load`.
+- `--test` (`-t`): create a test only script (just the eBPF verifier output is shown, without loading any program). It is not compatible with a custom loading command.
 
 ### Example
 

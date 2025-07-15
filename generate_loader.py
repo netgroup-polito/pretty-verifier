@@ -26,12 +26,22 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-# Get base name from .c file
-SRC_FILE="$1"
-BPF_NAME=$(basename "$SRC_FILE" .c)
+INPUT="$1"
 
-# Optional override for .o and path
-BPF_OFILE="${{2:-${{BPF_NAME}}.o}}"
+DIR="$(dirname "$INPUT")"
+
+BASENAME="$(basename "$INPUT")"
+BASENAME_NOEXT="${BASENAME%.*}"
+
+SRC_FILE="$DIR/$BASENAME_NOEXT.c"
+
+if [ -n "$2" ]; then
+    OBJ_FILE="$2"
+else
+    OBJ_FILE="$DIR/$BASENAME_NOEXT.o"
+fi
+
+BASE="$DIR/$BASENAME_NOEXT"
 
 
 {loading_line} 2>&1 | python3 "{pretty_path}" -c $SRC_FILE -o $BPF_OFILE
@@ -54,8 +64,14 @@ def main():
     parser.add_argument(
         "--load-command", "-l",
         type=str,
-        default='BPF_PATH="/sys/fs/bpf/${BPF_NAME}"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"',
+        default="",
         help="Custom BPF loading line"
+    )
+    parser.add_argument(
+        "--test, "-t",
+        type=bool,
+        default=False,
+        help="Run the script in test mode (no actual loading, just print the verifier error message)"
     )
 
     args = parser.parse_args()
@@ -72,9 +88,19 @@ def main():
         return
     pretty_path = os.path.relpath(pretty_path_loc, start=output_dir.resolve())
 
+    if args.test:
+        if args.load_command == "":
+            loading_line = 'BPF_PATH="/dev/null"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"'
+        else:
+            exit("Test mode does not support custom load commands.")
+        if args.load_command != "":
+            loading_line = 'BPF_PATH="/sys/fs/bpf/${BPF_NAME}"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"'
+        else:
+            loading_line = args.load_command
+
     # Composizione dello script
     bash_script = TEMPLATE.format(
-        loading_line=args.load_command,
+        loading_line=loading_line,
         pretty_path=pretty_path
     )
 
