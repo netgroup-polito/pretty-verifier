@@ -40,7 +40,7 @@ def get_output(source_file):
         subprocess.run(compile_command, check=True, stderr=subprocess.PIPE)
         source_file_name="ajeje"
         print("Loading...")
-        subprocess.run(["sudo", "bpftool", "prog", "load", temp_output, f"/sys/fs/bpf/{source_file_name}"], check=True, stderr=subprocess.PIPE)
+        subprocess.run(["sudo", "bpftool", "prog", "load", temp_output, "/dev/null"], check=True, stderr=subprocess.PIPE)
 
 
 
@@ -49,8 +49,6 @@ def get_output(source_file):
         llvm_objdump = add_line_number(output, temp_output, -1)
 
     finally:
-        if len(output) == 0:
-            subprocess.run(["sudo", "rm", f"/sys/fs/bpf/{source_file_name}"], check=True, stderr=subprocess.PIPE)
         if os.path.exists(temp_source):
             os.remove(temp_source)
         if os.path.exists(temp_output):
