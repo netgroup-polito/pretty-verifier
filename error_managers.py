@@ -136,7 +136,7 @@ def type_mismatch(output, reg, type, expected):
     expecteds = expected.split(", ")
     location = get_line(output)
     try:
-        value = location.split("(")[1][:-1].split(",")[int(reg)-1]
+        value = location.split("(")[1].split(")")[0].split(",")[int(reg)-1]
     except (IndexError, ValueError) as e:
         value = ""
 
