@@ -31,10 +31,7 @@ INPUT="$1"
 DIR="$(dirname "$INPUT")"
 
 BASENAME="$(basename "$INPUT")"
-BASENAME_NOEXT="${BASENAME%.*}"
-
-SRC_FILE="$DIR/$BASENAME_NOEXT.c"
-
+BASENAME_NOEXT="${{BASENAME%.*}}" 
 if [ -n "$2" ]; then
     OBJ_FILE="$2"
 else
@@ -68,8 +65,8 @@ def main():
         help="Custom BPF loading line"
     )
     parser.add_argument(
-        "--test, "-t",
-        type=bool,
+        "--test", "-t",
+        action="store_true",
         default=False,
         help="Run the script in test mode (no actual loading, just print the verifier error message)"
     )
@@ -87,13 +84,13 @@ def main():
         print("Error: directory not recognized as a Pretty Verifier repository.")
         return
     pretty_path = os.path.relpath(pretty_path_loc, start=output_dir.resolve())
-
     if args.test:
         if args.load_command == "":
             loading_line = 'BPF_PATH="/dev/null"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"'
         else:
             exit("Test mode does not support custom load commands.")
-        if args.load_command != "":
+    else:
+        if args.load_command == "":
             loading_line = 'BPF_PATH="/sys/fs/bpf/${BPF_NAME}"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"'
         else:
             loading_line = args.load_command
