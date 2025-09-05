@@ -16,12 +16,26 @@ import subprocess
 import re
 import os
 
-def print_error(message, location=None, suggestion=None, appendix=None):
+error_number = None
 
+def enable_enumerate():
+    global error_number
+    error_number = -1
+
+def set_error_number(n):
+    global error_number
+    if error_number != None:
+        error_number = n
+
+def print_error(message, location=None, suggestion=None, appendix=None):
+    if error_number != None:
+        error_number_string = f"{error_number} "
+    else:  
+        error_number = ""
     error_message = f"\n\033[96m#######################\033"+ \
             f"\n\033[96m## Prettier Verifier ##\033\n"+ \
             f"\033[96m#######################\033\n"+ \
-            f"\n\033[91merror\033[0m: "+ \
+            f"\n\033[91m{error_number}error\033[0m: "+ \
             f"\033[94m{message}\033[0m\n"
 
 

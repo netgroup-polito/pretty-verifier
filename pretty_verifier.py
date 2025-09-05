@@ -18,6 +18,7 @@ import sys
 import argparse
 from handler import handle_error
 from full_mode import get_output
+from utils import enable_enumerate
 
 def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
     verifier_log = []
@@ -42,6 +43,7 @@ def main():
     parser.add_argument("-c", "--source", nargs="+", required=False, help="The C source files (e.g., hello.bpf.c hello_helpers.c)")
     parser.add_argument("-o", "--bytecode", required=False, help="The result of the clang compilation (e.g., hello.bpf.o)")
     parser.add_argument("-f", "--full-mode", required=False, help="Enable test before compilation mode (requires C source file with entry point)")
+    parser.add_argument("-n", "--enumerate", required=False, help="Add an error number to each error", action='store_true')
 
     args = parser.parse_args()
     logfile = args.logfile
@@ -58,6 +60,9 @@ def main():
     c_source_files = args.source
     bytecode_file = args.bytecode
     full_mode = args.full_mode
+
+    if args.enumerate:
+        enable_enumerate()
 
     if not full_mode:
         process_input(c_source_files, bytecode_file, output)
