@@ -197,7 +197,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         )
         return
 
-    stack_frames_exceeded_pattern = re.search(r"the call stack of (\d+) frames is too deep !", error)
+    stack_frames_exceeded_pattern = re.search(r"the call stack of (\d+) frames is too deep( !)?", error)
     count+=1
     if stack_frames_exceeded_pattern:
         set_error_number(count)
@@ -423,18 +423,38 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         set_error_number(count)
         r0_not_scalar(output)
         return
-    
-    verbose_invalid_scalar_pattern = re.search(r"At (.*?) the register (.*?) has (value (.*?)|unknown scalar value) should have been in (.*?)", error)
-    count+=1
+    '''   
+    6.6
+        verbose_invalid_scalar_pattern = re.search(r"At (.*?) the register (.*?) has (value (.*?)|unknown scalar value) should have been in (.*?)", error)
+        count+=1
+        if verbose_invalid_scalar_pattern:
+            set_error_number(count)
+            verbose_invalid_scalar(
+                output,
+                verbose_invalid_scalar_pattern.group(1),
+                verbose_invalid_scalar_pattern.group(2),
+                verbose_invalid_scalar_pattern.group(3),
+                verbose_invalid_scalar_pattern.group(5),
+                )
+            return
+    '''
+
+    verbose_invalid_scalar_pattern = re.search(
+        r"^(.*?) the register (.*?) has(?:(?: smin=(-?\d+))?(?: smax=(-?\d+))?| unknown scalar value) should have been in \[(-?\d+), (-?\d+)\]$",
+        error,
+    )
+    count += 1
     if verbose_invalid_scalar_pattern:
         set_error_number(count)
         verbose_invalid_scalar(
             output,
             verbose_invalid_scalar_pattern.group(1),
-            verbose_invalid_scalar_pattern.group(2),
-            verbose_invalid_scalar_pattern.group(3),
-            verbose_invalid_scalar_pattern.group(5),
-            )
+            verbose_invalid_scalar_pattern.group(2), 
+            verbose_invalid_scalar_pattern.group(3), 
+            verbose_invalid_scalar_pattern.group(4), 
+            verbose_invalid_scalar_pattern.group(5),  
+            verbose_invalid_scalar_pattern.group(6),  
+        )
         return
 
     write_into_map_forbidden_pattern = re.compile(r"write into map forbidden")
@@ -798,6 +818,25 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     if unbounded_mem_access_umax_missing_pattern:
         set_error_number(count)
         unbounded_mem_access_umax_missing(output)
+        return
+    
+    tail_call_lead_to_leak_pattern = re.search(r"tail_call would lead to reference leak", error)
+    count+=1
+    if tail_call_lead_to_leak_pattern:
+        set_error_number(count)
+        tail_call_lead_to_leak(output)
+        return
+    
+        
+    caller_passes_invalid_args_into_func_pattern = re.search(r"Caller passes invalid args into func#(\d+) \('(.*?)'\)", error)
+    count+=1
+    if caller_passes_invalid_args_into_func_pattern:
+        set_error_number(count)
+        caller_passes_invalid_args_into_func(
+            output,
+            caller_passes_invalid_args_into_func_pattern.group(1),
+            caller_passes_invalid_args_into_func_pattern.group(2)
+            )
         return
         
 

@@ -494,7 +494,8 @@ def r0_not_scalar(output):
     location = get_line(output)
     print_error(f"Return value must be a scalar value", location)
 
-
+'''
+6.6
 def verbose_invalid_scalar(output, ctx, reg, val, range):
     for s in reversed(output):
         if val:
@@ -505,6 +506,25 @@ def verbose_invalid_scalar(output, ctx, reg, val, range):
         if s.startswith(';'):
             print_error(f"At {ctx} {join}", location=s, appendix=appendix)
             return
+'''
+
+def verbose_invalid_scalar(output, ctx, reg, smin, smax, minval, maxval):
+    join = "unknown scalar values"
+    if smin:
+        if smax:
+            join = f"between {smin} and {smax}"
+        else:
+            join = f"above {smin}"
+    else:
+        if smax:
+            join = f"below {smax}"
+
+
+    appendix = f"Should have been between {minval} and {maxval}"
+    location = get_line(output)
+    print_error(f"Variable may contains values {join}", location=location, appendix=appendix)
+    return
+
         
 def write_into_map_forbidden(output):
     location = get_line(output)
@@ -524,7 +544,7 @@ def unknown_func(output, func, c_source_files):
    
 def tail_call_lead_to_leak(output):
     location = get_line(output)
-    print_error(f"Tail call of helper function would lead to reference leak", location)
+    print_error(f"Tail call invocation before releasing reference leads to reference leak", location)
 
 def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
     if void:
@@ -855,3 +875,7 @@ def unbounded_mem_access_umax_missing(output):
     location = get_line(output)
     suggestion="Consider adding an upper bound memory check before accessing memory"
     print_error("Upper bound check missing", location=location, suggestion=suggestion)
+
+def caller_passes_invalid_args_into_func(output, func_num, func_name):
+    location = get_line(output)
+    print_error(f"Invalid arguments passed to global function {func_name}", location=location)

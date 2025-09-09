@@ -28,14 +28,15 @@ def set_error_number(n):
         error_number = n
 
 def print_error(message, location=None, suggestion=None, appendix=None):
+    global error_number
+    error_number_string = ""
     if error_number != None:
         error_number_string = f"{error_number} "
-    else:  
-        error_number = ""
+
     error_message = f"\n\033[96m#######################\033"+ \
             f"\n\033[96m## Prettier Verifier ##\033\n"+ \
             f"\033[96m#######################\033\n"+ \
-            f"\n\033[91m{error_number}error\033[0m: "+ \
+            f"\n\033[91m{error_number_string}error\033[0m: "+ \
             f"\033[94m{message}\033[0m\n"
 
 

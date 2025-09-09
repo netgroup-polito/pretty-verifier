@@ -538,9 +538,86 @@ if __name__ == "__main__":
                             ))
     #infinite loop detected
     test_suite.add_test_case("infinite_loop_detected", 
-                             PrettyVerifierOutput(
-                                 error_message="Infinite loop detected"))
+                            PrettyVerifierOutput(
+                                error_message="Infinite loop detected"))
 
+    test_suite.add_test_case("bpf_program_too_large",                              
+                            PrettyVerifierOutput(
+                                error_message="Maximum number of instructions is 1,000,000, processed 1000001",
+                                line_number= 14,
+                                code = "bpf_printk(\"Looping %d\", i);",
+                                file_name = path+"/bpf_program_too_large.bpf.c",
+                                appendix="An unrolled loop with too many cycles may be present in the program"
+                            ))
+    test_suite.add_test_case("caller_passes_invalid_args_into_func",                              
+                            PrettyVerifierOutput(
+                                error_message="Invalid arguments passed to global function callee1",
+                                line_number= 24,
+                                code = "return callee1(ctx);",
+                                file_name = path+"/caller_passes_invalid_args_into_func.bpf.c",
+                            ))
+    test_suite.add_test_case("cannot_pass_map_type_into_func",                              
+                            PrettyVerifierOutput(
+                                error_message="Map 3 cannot be passed into function 'bpf_skb_under_cgroup' because of type incompatibility",
+                                line_number= 17,
+                                code = "v1 = bpf_skb_under_cgroup(ctx, &map_0, (uint)v0);",
+                                file_name = path+"/cannot_pass_map_type_into_func.bpf.c",
+                            ))
+    test_suite.add_test_case("combined_stack_size_exceeded",                              
+                            PrettyVerifierOutput(
+                                error_message="Combined stack size of 2 subprograms is 672, maximum is 512",
+                            ))
+    test_suite.add_test_case("min_value_is_negative",                              
+                            PrettyVerifierOutput(
+                                error_message="Minimum possible value is not allowed to be negative",
+                                line_number= 29,
+                                code = "v4 = bpf_probe_read_kernel(v1, v3, &bpf_prog_active);",
+                                file_name = path+"/min_value_is_negative.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_null_check",                              
+                            PrettyVerifierOutput(
+                                error_message="Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type",
+                                line_number= 50,
+                                code = "bpf_tail_call(ctx, &map_0, (unsigned int)&v2->e1);",
+                                file_name = path+"/pointer_arithmetic_null_check.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_prohibited_map_ptr",                              
+                            PrettyVerifierOutput(
+                                error_message="Cannot modify value: pointer arithmetic on pointer to map prohibited",
+                                line_number= 28,
+                                code = "v0 = bpf_skb_vlan_push(ctx, (unsigned short)&map_0, (unsigned short)ctx);",
+                                file_name = path+"/pointer_arithmetic_prohibited_map_ptr.bpf.c",
+                            ))
+    test_suite.add_test_case("pointer_arithmetic_prohibited_sock_ptr",                              
+                            PrettyVerifierOutput(
+                                error_message="Cannot modify value: pointer arithmetic on pointer to common socket fields prohibited",
+                                line_number= 10,
+                                code = "v2 = bpf_skb_vlan_push(ctx, v0, (unsigned short)v1);",
+                                file_name = path+"/pointer_arithmetic_prohibited_sock_ptr.bpf.c",
+                            ))        
+    test_suite.add_test_case("stack_frames_exceeded",                              
+                            PrettyVerifierOutput(
+                                error_message="Program has 9 tail calls, maximum is 8",
+                            ))     
+    test_suite.add_test_case("tail_call_lead_to_leak",                              
+                            PrettyVerifierOutput(
+                                error_message="Tail call invocation before releasing reference leads to reference leak",
+                                line_number= 32,
+                                code = "bpf_tail_call(ctx, &map_0, v5);",
+                                file_name = path+"/tail_call_lead_to_leak.bpf.c",
+                            ))  
+    test_suite.add_test_case("tail_calls_not_allowed_if_frame_size_exceeded",                              
+                            PrettyVerifierOutput(
+                                error_message="Stack size of previous subprogram is 320, maximum is 256"
+                            ))        
+    test_suite.add_test_case("verbose_invalid_scalar",                              
+                            PrettyVerifierOutput(
+                                error_message="Variable may contains values between 2 and 2",
+                                line_number= 8,
+                                code = "return 2;",
+                                file_name = path+"/verbose_invalid_scalar.bpf.c",
+                                appendix = "Should have been between 0 and 0"
+                            ))                                                                                                       
     # shaker = BPFTestShaker(test_suite, iterations=1)
     #shaker.create_tests()
 
