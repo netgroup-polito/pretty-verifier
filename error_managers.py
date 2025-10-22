@@ -308,11 +308,25 @@ def min_value_is_negative(output):
 
     print_error(f"Minimum possible value is not allowed to be negative", location, suggestion=suggestion)
 
-def unbounded_mem_access(output):
-    suggestion = "Use 'var &= const' or 'if (var < const)'"
+def unbounded_mem_access(output, reg):
     location = get_line(output)
-
-    print_error(f"Unbounded memory access", location, suggestion=suggestion)
+    try:
+        value = location.split("(")[1].split(")")[0].split(",")[int(reg)-1].strip()
+    except (IndexError, ValueError, AttributeError) as e:
+        value = ""
+    
+    suggestion = f"Add '{value} &= const' or 'if ({value} < const)'"
+    
+    if "bpf_probe_read_" in location and reg == '2':
+        try:
+            buff = location.split("(")[1].split(")")[0].split(",")[int(1)-1].strip()
+        except (IndexError, ValueError, AttributeError) as e:
+            buff = ""
+        
+        suggestion += f"\n{value} must be smaller than the size of the dest buffer {buff}"
+        
+    
+    print_error(f"Unbounded memory access of the variable '{value}'", location, suggestion=suggestion)
 
 
 def check_ptr_off_reg(output):
@@ -422,15 +436,29 @@ def atomic_stores_into_type_not_allowed(output, type):
     print_error(f"Cannot store value into {get_type(type)}", location)
 
 
-def min_value_is_negative_2(output):
-    suggestion = "Use unsigned or 'var &= const'"
+def min_value_is_negative_2(output, reg):
     location = get_line(output)
+    try:
+        value = location.split("(")[1].split(")")[0].split(",")[int(reg)-1].strip()
+    except (IndexError, ValueError, AttributeError) as e:
+        value = ""
+    
+    suggestion = f"Use {value} as unsigned or add '{value} &= const'"
+    
+    if "bpf_probe_read_" in location and reg == '2':
+        try:
+            buff = location.split("(")[1].split(")")[0].split(",")[int(1)-1].strip()
+        except (IndexError, ValueError, AttributeError) as e:
+            buff = ""
+        
+        suggestion += f"\n{value} must be smaller than the size of the dest buffer {buff}"
+        
     print_error(f"Minimum possible value is not allowed to be negative", location, suggestion=suggestion)
 
 
-def map_has_to_have_BTF(output, map):
+def map_has_to_have_BTF(output, map, func):
     location = get_line(output)
-    print_error(f"Map {map} has to have a BTF definition in order to be used", location)
+    print_error(f"{func} usage requires map '{map}' to have a type with BTF", location)
 
         
 def dynptr_has_to_be_uninit(output):
@@ -509,10 +537,16 @@ def verbose_invalid_scalar(output, ctx, reg, val, range):
 '''
 
 def verbose_invalid_scalar(output, ctx, reg, smin, smax, minval, maxval):
+    variable = "Variable"
+    if reg == "R0":
+        variable = "The return value"
     join = "unknown scalar values"
     if smin:
         if smax:
-            join = f"between {smin} and {smax}"
+            if smin == smax:
+                join = f"equal to {smin}"
+            else:
+                join = f"between {smin} and {smax}"
         else:
             join = f"above {smin}"
     else:
@@ -522,7 +556,7 @@ def verbose_invalid_scalar(output, ctx, reg, smin, smax, minval, maxval):
 
     appendix = f"Should have been between {minval} and {maxval}"
     location = get_line(output)
-    print_error(f"Variable may contains values {join}", location=location, appendix=appendix)
+    print_error(f"{variable} may contains values {join}", location=location, appendix=appendix)
     return
 
         
@@ -879,3 +913,24 @@ def unbounded_mem_access_umax_missing(output):
 def caller_passes_invalid_args_into_func(output, func_num, func_name):
     location = get_line(output)
     print_error(f"Invalid arguments passed to global function {func_name}", location=location)
+
+def kernel_subsystem_misconfigured_verifier(output):
+    location = get_line(output)
+    if "bpf_tail_call" in location:
+        suggestion="bpf_tail_call() must be used with a map of type BPF_MAP_TYPE_PROG_ARRAY"
+    print_error(f"Map configuration error", location=location, suggestion=suggestion)
+
+def read_from_map_forbidden(output, value_size, off, size):
+    location = get_line(output)
+    print_error(f"Cannot read from read only map", location)
+
+def sleepable_programs_can_only_use(output):
+    print_error(f"Sleepable programs can only use array, hash, ringbuf and local storage maps")
+
+def func_supported_only_for_fentry(output, func_name):
+    location = get_line(output)
+    print_error(f"Function {func_name} is supported only for fentry/fexit programs", location)
+
+def helper_might_sleep(output):
+    location = get_line(output)
+    print_error(f"Helper function might sleep in a non-sleepable prog", location)

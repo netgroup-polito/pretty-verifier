@@ -320,24 +320,28 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     count+=1
     if min_value_is_negative_2_pattern:
         set_error_number(count)
-        min_value_is_negative_2(output)
+        min_value_is_negative_2(
+            output,       
+            min_value_is_negative_2_pattern.group(1)
+            )
         return
-  
-    unbounded_mem_access_pattern = re.search(r"R(\d+) unbounded memory access, use 'var &= const' or 'if (var < const)'", error)
+    
+    unbounded_mem_access_pattern = re.search(r"R(\d+) unbounded memory access, use 'var &= const' or 'if \(var < const\)'", error)    
     count+=1
     if unbounded_mem_access_pattern:
         set_error_number(count)
-        unbounded_mem_access(output)
+        unbounded_mem_access(output, unbounded_mem_access_pattern.group(1))
         return
         
     
-    map_has_to_have_BTF_pattern = re.search(r"map '(.*?)' has to have BTF in order to use bpf_spin_lock", error)
+    map_has_to_have_BTF_pattern = re.search(r"map '(.*?)' has to have BTF in order to use (.+)", error)
     count+=1
     if map_has_to_have_BTF_pattern:
         set_error_number(count)
         map_has_to_have_BTF(
             output,
-            map_has_to_have_BTF_pattern.group(1)
+            map_has_to_have_BTF_pattern.group(1),
+            map_has_to_have_BTF_pattern.group(2)
             )
         return
 
@@ -838,6 +842,49 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             caller_passes_invalid_args_into_func_pattern.group(2)
             )
         return
-        
 
+            
+    kernel_subsystem_misconfigured_verifier_pattern = re.compile(r'kernel subsystem misconfigured verifier')
+    count+=1
+    if kernel_subsystem_misconfigured_verifier_pattern.match(error):
+        set_error_number(count)
+        kernel_subsystem_misconfigured_verifier(output)
+        return
+
+    
+    read_from_map_forbidden_pattern = re.search(r"read from map forbidden, value_size=(\d+)\s+off=(\d+)\s+size=(\d+)", error)
+    count+=1
+    if read_from_map_forbidden_pattern: 
+        set_error_number(count)
+        read_from_map_forbidden(
+            output,
+            int(read_from_map_forbidden_pattern.group(1)),
+            int(read_from_map_forbidden_pattern.group(2)),
+            int(read_from_map_forbidden_pattern.group(3))
+            )
+        return
+    
+    sleepable_programs_can_only_use_pattern = re.search(r"Sleepable programs can only use array, hash, ringbuf and local storage maps", error)
+    count+=1
+    if sleepable_programs_can_only_use_pattern:
+        set_error_number(count)
+        sleepable_programs_can_only_use(output)
+        return
+
+    func_supported_only_for_fentry_pattern = re.search(r"func (\w+)#(\d+)\s+supported only for fentry/fexit/fmod_ret programs", error)
+    count+=1
+    if func_supported_only_for_fentry_pattern:
+        set_error_number(count)
+        func_supported_only_for_fentry(
+            output,
+            func_supported_only_for_fentry_pattern.group(1),
+            )
+        return
+    helper_might_sleep_pattern = re.search(r"helper call might sleep in a non-sleepable prog", error)
+    count+=1
+    if helper_might_sleep_pattern:
+        set_error_number(count)
+        helper_might_sleep(output)
+        return
+    
     not_found(error)
