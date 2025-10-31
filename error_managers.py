@@ -237,6 +237,8 @@ def invalid_accesss_to_object(output, value_size, offset, size, object):
     appendix = f"The eBPF verifier is detecting {byte_suggestion} of the {object} you are trying to access."
 
     location = get_line(output)
+    if location is None:
+        location = ";;"
     
     index_regex = re.search(r"(.*)\[(\b[_a-zA-Z][_a-zA-Z0-9]*\b)\](.*)", location)
     if index_regex:
