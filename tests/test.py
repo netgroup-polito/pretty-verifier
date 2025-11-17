@@ -612,12 +612,45 @@ if __name__ == "__main__":
                             ))        
     test_suite.add_test_case("verbose_invalid_scalar",                              
                             PrettyVerifierOutput(
-                                error_message="Variable may contains values between 2 and 2",
+                                error_message="The return value may contains values equal to 2",
                                 line_number= 8,
                                 code = "return 2;",
                                 file_name = path+"/verbose_invalid_scalar.bpf.c",
                                 appendix = "Should have been between 0 and 0"
-                            ))                                                                                                       
+                            ))    
+    test_suite.add_test_case("read_from_map_forbidden",                              
+                            PrettyVerifierOutput(
+                                error_message="Cannot read from read only map",
+                                line_number= 37,
+                                code = "v1 = bpf_map_lookup_elem(&map_1, &v0->e0);",
+                                file_name = path+"/read_from_map_forbidden.bpf.c",
+                            ))     
+    test_suite.add_test_case("map_has_to_have_BTF",                              
+                            PrettyVerifierOutput(
+                                error_message="bpf_spin_lock usage requires map 'map_0' to have a type with BTF",
+                                line_number= 27,
+                                code = "bpf_spin_lock(&v0->e0);",
+                                file_name = path+"/map_has_to_have_BTF.bpf.c",
+                            ))      
+    test_suite.add_test_case("kernel_subsystem_misconfigured_verifier",                              
+                            PrettyVerifierOutput(
+                                error_message="Map configuration error",
+                                line_number= 14,
+                                code = "bpf_tail_call(ctx, &map_0, (u32)&map_0);",
+                                file_name = path+"/kernel_subsystem_misconfigured_verifier.bpf.c",
+                                suggestion="bpf_tail_call() must be used with a map of type BPF_MAP_TYPE_PROG_ARRAY"
+                            ))    
+    test_suite.add_test_case("func_supported_only_for_fentry",                              
+                            PrettyVerifierOutput(
+                                error_message="Function bpf_get_func_ip is supported only for fentry/fexit programs",
+                                line_number= 7,
+                                code = "v0 = bpf_get_func_ip(ctx);",
+                                file_name = path+"/func_supported_only_for_fentry.bpf.c",
+                            ))       
+    test_suite.add_test_case("helper_might_sleep",                              
+                            PrettyVerifierOutput(
+                                error_message="Helper function might sleep in a non-sleepable prog",
+                            ))                                                                                                         
     # shaker = BPFTestShaker(test_suite, iterations=1)
     #shaker.create_tests()
 
