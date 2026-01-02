@@ -16,9 +16,9 @@
 
 import sys
 import argparse
-from handler import handle_error
-from full_mode import get_output
-from utils import enable_enumerate
+from .handler import handle_error
+from .full_mode import get_output
+from .utils import enable_enumerate
 
 def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
     verifier_log = []
@@ -55,7 +55,12 @@ def main():
             print(f"Error: Log file '{logfile}' not found.")
             sys.exit(1)
     else:
-        output = sys.stdin
+        if not sys.stdin.isatty():
+            output = sys.stdin
+        
+        else:
+            parser.print_help()
+            sys.exit(1)
         
     c_source_files = args.source
     bytecode_file = args.bytecode

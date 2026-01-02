@@ -35,115 +35,164 @@ sudo apt install linux-headers-$(uname -r) \
                  build-essential \
                  linux-tools-$(uname -r) \
                  linux-tools-common \
-                 linux-tools-generic
+                 linux-tools-generic \
+                 cmake
 ```
+
 ## Kernel Version
 The current version of Pretty Verifier works best with distributions using the kernel version 6.8, but it partially works also for older and newer kernel versions.
 
-## Usage
+# Installation
 
-Currently, Pretty Verifier and the related tools (clang and the eBPF loader/verifier) must be run by the user as explained below. In the future, a script will be provided to run them more seamlessly.
+Pretty Verifier can be installed system-wide, providing both a CLI tool and a C library for integration.
+
+To install everything (CLI tool + C Library):
+```bash
+make install
+```
+
+If you only need the CLI tool:
+```bash
+make install-cli
+```
+
+To uninstall:
+```bash
+make uninstall
+```
+
+# Usage
+
+## 1. CLI Usage (Command Line)
+
+Once installed, you can use the `pretty-verifier` command directly from your terminal. @CHANGE
 
 Always compile your eBPF C code with Clang, using the -g option.
 
-Pipe `pretty_verifier.py` when loading the eBPF program, specifying the source and object files through the -c and -o options. 
+Pipe `pretty-verifier` when loading the eBPF program, specifying the source and object files through the -c and -o options.
 
 Here are examples for the two main scenarios:
 
-1. Pipe with `2>&1 |` in case of `stderr` output (like `bpftool load`)
-
-```bash
-bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty-verifier/pretty_verifier.py -c your_bpf_source.c -o your_bpf_object.o
-```
-2. Custom C user space program, with `libbpf` (printing to `stdin`)
-
-```bash
-./your_program | python3 path/to/pretty-verifier/pretty_verifier.py -c your_bpf_source.c -o your_bpf_object.o
-```
-If your eBPF program is split into multiple source files, you can add them in the command as shown below
-
-```bash
-bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | python3 path/to/pretty-verifier/pretty_verifier.py -c your_bpf_source.c your_bpf_library.h -o your_bpf_object.o
-```
-If you've saved the verifier log into a file (e.g., verifier.log), use the --logfile (-l) option:
-```
-python3 path/to/pretty_verifier.py -l verifier.log -c your_bpf_source.c -o your_bpf_object.o
-```
-
-
-## Loader Script Generator
-
-The `generate_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
-
-### Script generation
-
-To generate a loader script:
-
-```bash
-python3 generate_loader.py \
-    [--output-dir <output_directory>] \
-    [--script-name <script_name>] \
-    [--load-command "<custom_load_command>"] \
-    [--test]
-```
-
-- `--output-dir` (`-d`): directory where the script will be created. By default,it uses the current directory.
-- `--script-name` (`-n`): name of the generated script (default: `load.sh`).
-- `--load-command` (`-l`): custom command used to load the eBPF program (optional). By default, the generated script uses `sudo bpftool prog load`.
-- `--test` (`-t`): create a test only script (just the eBPF verifier output is shown, without loading any program). It is not compatible with a custom loading command.
-
-### Example
-
-Generate a loader script named `load.sh` from the **Pretty Verifier directory**:
-
-```bash
-python3 generate_loader.py -d path/to/develpement/directory
-```
-
-Generate a loader script from the **developement directory**:
-
-```bash
-python3 path/to/pretty-verifier/generate_loader.py
-```
-
-Generate a loader script from the **Pretty Verifier directory** with a **custom name** and **custom load command**:
-
-```bash
-python3 generate_loader.py -d ~/eBPF -n my_loader.sh -l "sudo bootstrap 127.0.0.1"
-```
-
-
-### Script usage
-
-The generated script accepts one or two arguments:
-
-```bash
-./load.sh <source.c> [object.o]
-```
-- The `<source.c>` argument is required. If only this is provided, the corresponding `.o` filename is inferred by replacing the `.c` extension with `.o`.  
-- If the optional `[object.o]` argument is also provided, it overrides the inferred object filename.
-
-
-## Add pretty_verifier alias
-
-In order to avoid adding the path of the verifier each time calling it, you can add a pretty_verifier alias.
-
-```bash
-echo 'alias pretty-verifier="python3 /path/to/pretty-verifier/pretty_verifier.py"' >> ~/.bashrc
-```
-
-So now you can use this notation:
-
-Pipe with `2>&1 |` in case of `stderr` output (like `bpftool load`)
+### Pipe with `stderr` output (e.g., `bpftool`)
 
 ```bash
 bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | pretty-verifier -c your_bpf_source.c -o your_bpf_object.o
 ```
-Custom C user space program, with `libbpf` (printing to `stdin`)
+
+### Pipe with `stdin` output (Custom Loaders printing the eBPF Verifier log)
 
 ```bash
 ./your_program | pretty-verifier -c your_bpf_source.c -o your_bpf_object.o
 ```
+
+If your eBPF program is split into multiple source files: @CHANGE
+
+```bash
+bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | pretty-verifier -c your_bpf_source.c your_bpf_library.h -o your_bpf_object.o
+```
+
+If you've saved the verifier log into a file (e.g., verifier.log), use the --logfile (-l) option:
+
+```bash
+pretty-verifier -l verifier.log -c your_bpf_source.c -o your_bpf_object.o
+```
+
+## 2. C Library Usage
+
+You can integrate Pretty Verifier directly into your C userspace loader to directly obtain the enhanced eBPF verifier log.
+
+### Instructions
+
+1. Include the header file: `#include <pretty_verifier.h>`
+2. Load the eBPF program and store the eBPF verifier log.
+3. Call `pretty_verifier`.
+4. Compile with `-lpretty-verifier`.
+
+### Code Example
+
+```c
+#include <stdio.h>
+#include <bpf/libbpf.h>
+#include <pretty_verifier.h>
+
+int main() {
+    // Buffer to capture the raw kernel verifier log
+    char log_buf[64 * 1024]; 
+    log_buf[0] = '\0';
+
+    // Configure libbpf to store verifier logs in our buffer
+    struct bpf_object_open_opts open_opts = {
+        .sz = sizeof(struct bpf_object_open_opts),
+        .kernel_log_buf = log_buf,
+        .kernel_log_size = sizeof(log_buf),
+        .kernel_log_level = 1, 
+    };
+
+    struct bpf_object *obj = bpf_object__open_file("test.bpf.o", &open_opts);
+    if (!obj) {
+        fprintf(stderr, "Failed to open BPF object\n");
+        return 1;
+    }
+
+    // Try to load the program
+    int err = bpf_object__load(obj);
+
+    if (err) {
+        char formatted_output[8192];
+        struct pretty_verifier_opts pv_opts = {
+            .source_path = "test.bpf.c",
+            .bytecode_path = "test.bpf.o",
+            .enumerate = 0
+        };
+
+        // Pass the captured raw log to Pretty Verifier
+        int res = pretty_verifier(log_buf, &pv_opts, formatted_output, sizeof(formatted_output));
+
+    if (res >= PV_SUCCESS) {
+            printf("%s\n", formatted_output);
+        } 
+        else if (res == PV_ERR_TRUNCATED) {
+            printf("Output truncated:\n%s\n", formatted_output);
+        } 
+        else if (res == PV_ERR_NOT_FOUND) {
+            fprintf(stderr, "Error: 'pretty-verifier' tool not found in PATH.\n");
+        }
+        else {
+            fprintf(stderr, "Error formatting log (Code: %d)\n", res);
+        }
+    } else {
+        // ... attach programs, create links, etc ...
+        printf("Program loaded successfully.\n");
+    }
+
+    return 0;
+}
+```
+
+### Compilation @ADD
+
+Link against the `pretty-verifier` library:
+
+```bash
+gcc my_loader.c -o my_loader -lpretty-verifier -lbpf -I/usr/local/include -L/usr/local/lib
+```
+
+## Loader Script Generator @DELETE
+
+The `generate_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier. @DELETE
+
+### Script generation @DELETE
+
+To generate a loader script: @DELETE
+
+```bash
+python3 generate_loader.py \ @DELETE
+    [--output-dir <output_directory>] \ @DELETE
+    [--script-name <script_name>] \ @DELETE
+    [--load-command "<custom_load_command>"] \ @DELETE
+    [--test] @DELETE
+```
+
 # Acknowledgements
 
 This work has been partially supported by the ELASTIC

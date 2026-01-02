@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from utils import print_error, get_section_name, add_line_number,  get_line
+from .utils import print_error, get_section_name, add_line_number,  get_line
 import re
 import math
 

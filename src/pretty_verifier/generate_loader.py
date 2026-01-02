@@ -31,7 +31,7 @@ INPUT="$1"
 DIR="$(dirname "$INPUT")"
 
 BASENAME="$(basename "$INPUT")"
-BASENAME_NOEXT="${{BASENAME%.*}}" 
+BASENAME_NOEXT="${BASENAME%.*}" 
 if [ -n "$2" ]; then
     OBJ_FILE="$2"
 else
@@ -40,8 +40,12 @@ fi
 
 BASE="$DIR/$BASENAME_NOEXT"
 
+# ADD: Mapping variables to standard names used by loading_line and pretty-verifier
+SRC_FILE="$INPUT"
+BPF_OFILE="$OBJ_FILE"
+BPF_NAME="$BASENAME_NOEXT"
 
-{loading_line} 2>&1 | python3 "{pretty_path}" -c $SRC_FILE -o $BPF_OFILE
+{loading_line} 2>&1 | pretty-verifier -c "$SRC_FILE" -o "$BPF_OFILE"
 """
 
 def main():
@@ -78,12 +82,6 @@ def main():
         print(f"Error: {output_dir} is not a valid directory.")
         return
 
-    curr_dir = Path(__file__).resolve().parent
-    pretty_path_loc = curr_dir / "pretty_verifier.py"
-    if not pretty_path_loc.is_file():
-        print("Error: directory not recognized as a Pretty Verifier repository.")
-        return
-    pretty_path = os.path.relpath(pretty_path_loc, start=output_dir.resolve())
     if args.test:
         if args.load_command == "":
             loading_line = 'BPF_PATH="/dev/null"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"'
@@ -97,8 +95,7 @@ def main():
 
     # Composizione dello script
     bash_script = TEMPLATE.format(
-        loading_line=loading_line,
-        pretty_path=pretty_path
+        loading_line=loading_line
     )
 
     output_script = output_dir / args.script_name

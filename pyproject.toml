@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pretty-verifier"
+version = "0.1.0"
+description = "eBPF Verifier output improver"
+readme = "README.md"
+authors = [{ name = "Netgroup Polito", email = "rosario.rizza@polito.it" }]
+requires-python = ">=3.7"
+
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/netgroup-polito/pretty-verifier"
+
+[project.scripts]
+pretty-verifier = "pretty_verifier.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

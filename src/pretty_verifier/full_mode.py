@@ -16,7 +16,7 @@ import os
 import subprocess
 import shutil
 import tempfile
-from utils import add_line_number
+from .utils import add_line_number
 
 def get_output(source_file):
     output = []
