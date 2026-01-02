@@ -65,7 +65,7 @@ make uninstall
 
 ## 1. CLI Usage (Command Line)
 
-Once installed, you can use the `pretty-verifier` command directly from your terminal. @CHANGE
+Once installed, you can use the `pretty-verifier` command directly from your terminal.
 
 Always compile your eBPF C code with Clang, using the -g option.
 
@@ -85,7 +85,7 @@ bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | pretty-verifier 
 ./your_program | pretty-verifier -c your_bpf_source.c -o your_bpf_object.o
 ```
 
-If your eBPF program is split into multiple source files: @CHANGE
+If your eBPF program is split into multiple source files:
 
 ```bash
 bpftool prog load your_bpf_object.o /sys/fs/bpf/your_bpf 2>&1 | pretty-verifier -c your_bpf_source.c your_bpf_library.h -o your_bpf_object.o
@@ -169,7 +169,7 @@ int main() {
 }
 ```
 
-### Compilation @ADD
+### Compilation
 
 Link against the `pretty-verifier` library:
 
@@ -177,20 +177,20 @@ Link against the `pretty-verifier` library:
 gcc my_loader.c -o my_loader -lpretty-verifier -lbpf -I/usr/local/include -L/usr/local/lib
 ```
 
-## Loader Script Generator @DELETE
+## Loader Script Generator
 
-The `generate_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier. @DELETE
+The `generate_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
 
-### Script generation @DELETE
+### Script generation 
 
-To generate a loader script: @DELETE
+To generate a loader script:
 
 ```bash
-python3 generate_loader.py \ @DELETE
-    [--output-dir <output_directory>] \ @DELETE
-    [--script-name <script_name>] \ @DELETE
-    [--load-command "<custom_load_command>"] \ @DELETE
-    [--test] @DELETE
+python3 generate_loader.py \ 
+    [--output-dir <output_directory>] \ 
+    [--script-name <script_name>] \
+    [--load-command "<custom_load_command>"] \
+    [--test]
 ```
 
 # Acknowledgements
