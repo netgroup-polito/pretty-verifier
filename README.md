@@ -193,6 +193,13 @@ python3 generate_loader.py \
     [--test]
 ```
 
+# Development mode
+In order to run Pretty Verifier without installation, into the current folder, run
+
+```bash
+PYTHONPATH=src python3 -m pretty_verifier.main
+```
+
 # Acknowledgements
 
 This work has been partially supported by the ELASTIC

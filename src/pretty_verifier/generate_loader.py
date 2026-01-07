@@ -31,7 +31,7 @@ INPUT="$1"
 DIR="$(dirname "$INPUT")"
 
 BASENAME="$(basename "$INPUT")"
-BASENAME_NOEXT="${BASENAME%.*}" 
+BASENAME_NOEXT="${{BASENAME%.*}}" 
 if [ -n "$2" ]; then
     OBJ_FILE="$2"
 else
@@ -40,7 +40,6 @@ fi
 
 BASE="$DIR/$BASENAME_NOEXT"
 
-# ADD: Mapping variables to standard names used by loading_line and pretty-verifier
 SRC_FILE="$INPUT"
 BPF_OFILE="$OBJ_FILE"
 BPF_NAME="$BASENAME_NOEXT"
@@ -48,34 +47,37 @@ BPF_NAME="$BASENAME_NOEXT"
 {loading_line} 2>&1 | pretty-verifier -c "$SRC_FILE" -o "$BPF_OFILE"
 """
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate a BPF loader script with pretty verifier integration.")
+def genloader(args_list):
+    parser = argparse.ArgumentParser(
+        prog="pretty-verifier genloader",
+        description="Generate a BPF loader script with pretty verifier integration."
+    )
     parser.add_argument(
-        "--output-dir", "-d",
+        "-d",  "--output-dir", 
         type=str,
         default=".",
         help="Directory where the bash script will be created"
     )
     parser.add_argument(
-        "--script-name", "-n",
+        "-n", "--script-name", 
         type=str,
         default="load.sh",
         help="Filename for the generated script"
     )
     parser.add_argument(
-        "--load-command", "-l",
+        "-l", "--load-command", 
         type=str,
         default="",
         help="Custom BPF loading line"
     )
     parser.add_argument(
-        "--test", "-t",
+        "-t", "--test", 
         action="store_true",
         default=False,
         help="Run the script in test mode (no actual loading, just print the verifier error message)"
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(args_list)
 
     output_dir = Path(args.output_dir).resolve()
     if not output_dir.is_dir():
@@ -93,7 +95,6 @@ def main():
         else:
             loading_line = args.load_command
 
-    # Composizione dello script
     bash_script = TEMPLATE.format(
         loading_line=loading_line
     )
@@ -107,4 +108,5 @@ def main():
     print(f"Script generated at: {output_script}")
 
 if __name__ == "__main__":
-    main()
+    import sys
+    genloader(sys.argv[1:])
