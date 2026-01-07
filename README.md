@@ -176,21 +176,102 @@ Link against the `pretty-verifier` library:
 ```bash
 gcc my_loader.c -o my_loader -lpretty-verifier -lbpf -I/usr/local/include -L/usr/local/lib
 ```
+## 3. Go Library Usage
+
+You can integrate Pretty Verifier directly into your Go userspace loader to intercept and format verification errors returned by the `cilium/ebpf` library.
+
+### Instructions
+
+After installing Pretty Verifier, import the package:
+```go
+import (
+    //...
+    "github.com/netgroup-polito/pretty-verifier/lib/go"
+    //...
+)
+```
+Then pass the eBPF verifier log to Pretty Verifier.
+
+### Code Example
+
+```go
+package main
+
+import (
+    "errors"
+    "fmt"
+    "log"
+
+    "github.com/cilium/ebpf"
+    pv "github.com/netgroup-polito/pretty-verifier/lib/go"
+)
+
+func main() {
+
+    spec, err := ebpf.LoadCollectionSpec("test.bpf.o")
+    if err != nil {
+        log.Fatalf("Failed to load spec: %v", err)
+    }
+
+    opts := ebpf.CollectionOptions{
+        Programs: ebpf.ProgramOptions{
+            LogLevel: ebpf.LogLevelInstruction,
+        },
+    }
+
+    // Try to load the program into the kernel
+    coll, err := ebpf.NewCollectionWithOptions(spec, opts)
+
+    if err != nil {
+        var ve *ebpf.VerifierError
+        if errors.As(err, &ve) {
+
+            rawLog := fmt.Sprintf("%+v", ve)
+            
+            // Configure the Pretty Verifier options
+            pvOpts := pv.Options{
+                SourcePaths:  "test.bpf.c",
+                BytecodePath: "test.bpf.o",
+                Enumerate:    false,
+            }
+
+            // Pass the raw verifier log to Pretty Verifier
+            formattedOutput, pvErr := pv.Format(ve.Log, pvOpts)
+            
+            if pvErr != nil {
+                // In case of error, print original verifier log
+                log.Printf("Error running pretty-verifier: %v", pvErr)
+                fmt.Printf("Raw Verifier Log:\n%s\n", ve.Log)
+            } else {
+                // Print the enhanced output
+                fmt.Println(formattedOutput)
+            }
+            return
+        }
+        
+        log.Fatalf("Failed to create collection: %v", err)
+    }
+    defer coll.Close()
+
+    fmt.Println("Program loaded successfully.")
+}
+```
 
 ## Loader Script Generator
 
-The `generate_loader.py` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
+The `genloader` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
 
 ### Script generation 
 
 To generate a loader script:
 
 ```bash
-python3 generate_loader.py \ 
-    [--output-dir <output_directory>] \ 
-    [--script-name <script_name>] \
-    [--load-command "<custom_load_command>"] \
-    [--test]
+pretty-verifier geneloader \ 
+    [--output-dir <output_directory> -d] \ 
+    [--script-name <script_name> -n] \
+    [--load-command "<custom_load_command>" -l] \
+    [--test -t]
+    [--help -h]
 ```
 
 # Development mode

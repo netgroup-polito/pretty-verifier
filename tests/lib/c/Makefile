@@ -37,7 +37,7 @@ all: $(VMLINUX_H) $(BPFOBJS) $(USER_EXES)
 
 # vmlinux.h generation
 $(VMLINUX_H):
-	bpftool btf dump file /sys/kernel/btf/vmlinux format c > $(VMLINUX_H)
+	sudo bpftool btf dump file /sys/kernel/btf/vmlinux format c > $(VMLINUX_H)
 
 # Compilation of BPF programs
 %.o: %.c $(VMLINUX_H)
