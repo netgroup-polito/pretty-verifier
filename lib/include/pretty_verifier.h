@@ -23,7 +23,7 @@ enum {
 
 /* Configuration options */
 struct pretty_verifier_opts {
-    const char *source_path;   /* Path to C source file */
+    const char *source_paths;   /* Path to C source files, separated by a space */
     const char *bytecode_path; /* Path to ELF/Bytecode file */
     int enumerate;             /* 1 to enable error enumeration, 0 to disable */
 };

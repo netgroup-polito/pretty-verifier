@@ -27,7 +27,7 @@ int main() {
     if (err) {
         char formatted_output[8192];
         struct pretty_verifier_opts pv_opts = {
-            .source_path = "test.bpf.c",
+            .source_paths = "test.bpf.c",
             .bytecode_path = "test.bpf.o",
             .enumerate = 0
         };

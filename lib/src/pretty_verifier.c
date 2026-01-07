@@ -4,6 +4,8 @@
  */
 
 #define _GNU_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,6 +15,23 @@
 #include "../include/pretty_verifier.h"
 
 #define TEMP_CHUNK_SIZE 4096
+
+static int validate_regex(const char *text, const char *pattern) {
+    if (!text || !pattern) return 0;
+
+    regex_t regex;
+    int ret;
+
+    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB) != 0) {
+        return 0;
+    }
+
+    ret = regexec(&regex, text, 0, NULL, 0);
+
+    regfree(&regex);
+
+    return ret == 0;
+}
 
 int pretty_verifier(const char *raw_log, 
                            const struct pretty_verifier_opts *opts, 
@@ -28,6 +47,16 @@ int pretty_verifier(const char *raw_log,
 
     if (pipe(pipe_stdin) == -1 || pipe(pipe_stdout) == -1) {
         return -1;
+    }
+
+    const char *regex_bytecode = "^[a-zA-Z0-9_./-]+$";
+    if (!validate_regex(opts->bytecode_path, regex_bytecode)) {
+        return PV_ERR_GENERIC;
+    }
+
+    const char *regex_sources = "^[a-zA-Z0-9_./ -]+$";
+    if (!validate_regex(opts->source_paths, regex_sources)) {
+        return PV_ERR_GENERIC;
     }
 
     pid = fork();
@@ -53,9 +82,9 @@ int pretty_verifier(const char *raw_log,
         argv[argc++] = "pretty-verifier";
 
         if (opts) {
-            if (opts->source_path) {
+            if (opts->source_paths) {
                 argv[argc++] = "-c";
-                argv[argc++] = (char *)opts->source_path;
+                argv[argc++] = (char *)opts->source_paths;
             }
             if (opts->bytecode_path) {
                 argv[argc++] = "-o";
