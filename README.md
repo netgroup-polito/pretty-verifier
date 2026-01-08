@@ -96,6 +96,22 @@ If you've saved the verifier log into a file (e.g., verifier.log), use the --log
 ```bash
 pretty-verifier -l verifier.log -c your_bpf_source.c -o your_bpf_object.o
 ```
+### Loader Script Generator
+
+The `genloader` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
+
+To generate a loader script:
+
+```bash
+pretty-verifier geneloader \ 
+    [--output-dir <output_directory> -d] \ 
+    [--script-name <script_name> -n] \
+    [--load-command "<custom_load_command>" -l] \
+    [--test -t]
+    [--help -h]
+```
+
+
 
 ## 2. C Library Usage
 
@@ -340,10 +356,10 @@ fn main() -> anyhow::Result<()> {
 Ensure your `Cargo.toml` includes the necessary dependencies.
 
 ```toml
-// ...
+# ...
 [dependencies]
 pretty-verifier = { git = "https://github.com/netgroup-polito/pretty-verifier", subdir = "lib/rust" }
-// ...
+# ...
 ```
 
 Then build and run your project (usually requires root privileges for eBPF):
@@ -351,23 +367,6 @@ Then build and run your project (usually requires root privileges for eBPF):
 ```bash
 cargo build
 sudo ./target/debug/{program_name}
-```
-
-## Loader Script Generator
-
-The `genloader` utility creates a Bash script to automate the loading of eBPF programs and integration with Pretty Verifier.
-
-### Script generation 
-
-To generate a loader script:
-
-```bash
-pretty-verifier geneloader \ 
-    [--output-dir <output_directory> -d] \ 
-    [--script-name <script_name> -n] \
-    [--load-command "<custom_load_command>" -l] \
-    [--test -t]
-    [--help -h]
 ```
 
 # Development mode
