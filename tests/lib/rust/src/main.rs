@@ -11,7 +11,7 @@ fn logger_callback(_level: PrintLevel, msg: String) {
     }
 }
 
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     // Redirect the stderr of libbpf-rs to a global variable
     set_print(Some((
         PrintLevel::Debug,
