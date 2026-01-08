@@ -6,7 +6,7 @@ build/
 *.swp
 *.~
 *.log
-
+.idea/
 .coverage
 
 *.code-workspace

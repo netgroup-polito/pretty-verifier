@@ -185,9 +185,9 @@ You can integrate Pretty Verifier directly into your Go userspace loader to inte
 After installing Pretty Verifier, import the package:
 ```go
 import (
-    //...
+    // ...
     "github.com/netgroup-polito/pretty-verifier/lib/go"
-    //...
+    // ...
 )
 ```
 Then pass the eBPF verifier log to Pretty Verifier.
@@ -255,6 +255,102 @@ func main() {
 
     fmt.Println("Program loaded successfully.")
 }
+```
+
+## 4. Rust Library Usage
+
+You can integrate Pretty Verifier directly into your Rust userspace loader to intercept and format verification errors returned by libraries like `libbpf-rs`.
+
+### Instructions
+
+After installing Pretty Verifier, add the dependency to your `Cargo.toml`. Since `libbpf-rs` prints logs to stderr by default, you need to capture them using a callback.
+
+### Code Example
+
+```rust
+use anyhow::Result;
+use libbpf_rs::ObjectBuilder;
+use libbpf_rs::{PrintLevel, set_print};
+use pretty_verifier::{self, Options};
+use std::sync::Mutex;
+
+static GLOBAL_LOG_BUFFER: Mutex<String> = Mutex::new(String::new());
+
+fn logger_callback(_level: PrintLevel, msg: String) {
+    if let Ok(mut guard) = GLOBAL_LOG_BUFFER.lock() {
+        guard.push_str(&msg);
+    }
+}
+
+fn main() -> Result<()> {
+    // Redirect the stderr of libbpf-rs to a global variable
+    set_print(Some((
+        PrintLevel::Debug,
+        logger_callback 
+    )));
+
+    let filename = "test.bpf.o";
+    let source_filename = "test.bpf.c";
+
+    let open_object = ObjectBuilder::default().open_file(filename)?;
+
+    // Try to load the eBPF program
+    match open_object.load() {
+        Ok(_) => {
+            println!("Program loaded successfully.");
+        }
+        Err(_err) => {
+            // Retrieve the eBPF verifier log from the global variable
+            let captured_log = GLOBAL_LOG_BUFFER.lock().unwrap().clone();
+
+            // Configure Pretty Verifier options
+            let pv_opts = Options {
+                source_paths: source_filename,
+                bytecode_path: filename,
+                enumerate: false,
+                ..Default::default()
+            };
+
+            // Pass the captured log to Pretty Verifier
+            match pretty_verifier::format(&captured_log, pv_opts) {
+                Ok(formatted_output) => {
+                    // Print the enhanced output
+                    println!("{}", formatted_output);
+                },
+                // Manage possible errors
+                Err(pretty_verifier::Error::Truncated(_, partial)) => {
+                    println!("Output truncated:\n{}", partial);
+                },
+                Err(pretty_verifier::Error::NotFound) => {
+                    eprintln!("Error: 'pretty-verifier' tool not found in PATH.");
+                },
+                Err(e) => {
+                    eprintln!("Error formatting log: {}", e);
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+```
+
+### Compilation
+
+Ensure your `Cargo.toml` includes the necessary dependencies.
+
+```toml
+// ...
+[dependencies]
+pretty-verifier = { git = "https://github.com/netgroup-polito/pretty-verifier", subdir = "lib/rust" }
+// ...
+```
+
+Then build and run your project (usually requires root privileges for eBPF):
+
+```bash
+cargo build
+sudo ./target/debug/{program_name}
 ```
 
 ## Loader Script Generator
