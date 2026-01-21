@@ -71,7 +71,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
             id = int(unreleased_reference_pattern.group(1)),
             alloc_insn= unreleased_reference_pattern.group(2), 
             output_raw=output_raw, 
-            c_file=f"{c_source_files[0][:-1]}o"
+            bytecode_file=bytecode_file
         )
         return
     
@@ -128,7 +128,8 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     if min_value_is_outside_mem_range_pattern:
         set_error_number(count)
         min_value_is_outside_mem_range(
-            output
+            output,
+            min_value_is_outside_mem_range_pattern.group(1)
         )
         return
 
@@ -137,7 +138,8 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     if max_value_is_outside_mem_range_pattern:
         set_error_number(count)
         max_value_is_outside_mem_range(
-            output
+            output,
+            min_value_is_outside_mem_range_pattern.group(1)
         )
         return
     
@@ -146,7 +148,8 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     if offset_outside_packet_pattern:
         set_error_number(count)
         offset_outside_packet(
-            output
+            output,
+            min_value_is_outside_mem_range_pattern.group(1)
         )
         return
     
@@ -828,7 +831,11 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     count+=1
     if tail_call_lead_to_leak_pattern:
         set_error_number(count)
-        tail_call_lead_to_leak(output)
+        tail_call_lead_to_leak(
+            output,            
+            output_raw=output_raw, 
+            bytecode_file=bytecode_file
+            )
         return
     
         
@@ -887,4 +894,40 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         helper_might_sleep(output)
         return
     
+    invalid_zero_size_read_pattern = re.search(r"R(\d+) invalid zero-sized read: u64=\[(-?\d+),(-?\d+)\]", error)
+    count+=1
+    if invalid_zero_size_read_pattern:
+        set_error_number(count)
+        invalid_zero_size_read(
+            output,
+            invalid_zero_size_read_pattern.group(1)
+            )
+        return
+    
+    invalid_arg_type_sock_pattern = re.search(r"invalid arg_type for sockmap/sockhash", error)
+    count+=1
+    if invalid_arg_type_sock_pattern:
+        set_error_number(count)
+        invalid_arg_type_sock(output)
+        return
+    
+    only_one_cgroup_storage_pattern = re.search(r"only one cgroup storage of each type is allowed", error)
+    count+=1
+    if only_one_cgroup_storage_pattern:
+        set_error_number(count)
+        only_one_cgroup_storage(output)
+        return
+    
+    more_tan_one_arg_with_ref_pattern= re.search(r"verifier internal error: more than one arg with ref_obj_id R(\d+) (\d+) (\d+)", error)
+    count+=1
+    if more_tan_one_arg_with_ref_pattern:
+        set_error_number(count)
+        more_tan_one_arg_with_ref(
+            output, 
+            more_tan_one_arg_with_ref_pattern.group(1),
+            more_tan_one_arg_with_ref_pattern.group(2),
+            more_tan_one_arg_with_ref_pattern.group(3)
+            )
+        return
+
     not_found(error)

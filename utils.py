@@ -186,3 +186,13 @@ def get_line(output):
         if s.startswith(';'):
             return s
 
+def get_param(line, reg):
+    try:
+        ret = line.split("(")[1].split(")")[0].split(",")[int(reg)-1].strip()
+    except (IndexError, ValueError, AttributeError) as e:
+        ret = ""
+    return ret
+def get_kernel_version():
+    info = os.uname().release.split(".")
+    return f"{info[0]}.{info[1]}"
+

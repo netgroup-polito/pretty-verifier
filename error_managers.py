@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from utils import print_error, get_section_name, add_line_number,  get_line
+from utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version
 import re
 import math
 
@@ -162,9 +162,9 @@ def gpl_delcaration_missing():
         f"at the end of the file"
     print_error(message=message, suggestion=suggestion)
 
-def unreleased_reference(output, id, alloc_insn, output_raw, c_file):
+def unreleased_reference(output, id, alloc_insn, output_raw, bytecode_file):
     flag = False
-    o = add_line_number(output_raw, c_file, 0, alloc_insn)
+    o = add_line_number(output_raw, bytecode_file, 0, alloc_insn)
     for s in reversed(o):
         if s.startswith(f"{alloc_insn}: "):
             flag = True
@@ -225,32 +225,46 @@ def last_insn_not_exit_jmp(output, bytecode):
     print_error(f"Error using kernel function", location, suggestion=suggestion)
     
         
-def invalid_accesss_to_object(output, value_size, offset, size, object):
-    appendix = None
-    location = None
-
-    if value_size<=offset: 
-        byte_suggestion= f"{offset-value_size+size} bytes over the upper bound"
-    else:
-        byte_suggestion= f"{-offset-1+size} bytes under the lower bound"
-
-    appendix = f"The eBPF verifier is detecting {byte_suggestion} of the {object} you are trying to access."
-
+def invalid_accesss_to_object(output, value_size, offset, size, object, reg):
     location = get_line(output)
     if location is None:
         location = ";;"
-    
-    index_regex = re.search(r"(.*)\[(\b[_a-zA-Z][_a-zA-Z0-9]*\b)\](.*)", location)
-    if index_regex:
-        index = f' "{index_regex.group(2)}"'
-    else:
-        index = ""
 
-    suggestion = f"Make sure that the index{index} has been checked to be within the {object} allocated memory, or that the current bound check is restrictive enough (you are off by {byte_suggestion}).\n"
+    param = get_param(location, reg)
+    param_str = f" involving '{param}'" if param else ""
+
+    access_end = offset + size
+    diff = 0
+    err_description = ""
+    issue_type = "invalid access"
+
+    if offset < 0:
+        diff = abs(offset)
+        err_description = f"{diff} bytes before the beginning"
+        issue_type = "underflow"
+    elif access_end > value_size:
+        diff = access_end - value_size
+        err_description = f"{diff} bytes past the end"
+        issue_type = "overflow"
+    else:
+        err_description = "out of bounds"
+        issue_type = "out of bounds access"
+
+    appendix = f"Access{param_str} is {err_description} of the {object} (capacity: {value_size} bytes)."
+
+    index_regex = re.search(r"(.*)\[(\b[_a-zA-Z][_a-zA-Z0-9]*\b)\](.*)", location)
+    
+    if index_regex:
+        index = index_regex.group(2)
+        suggestion = f"Make sure that the index '{index}' is checked to be within the {object} bounds (0 to {value_size-1})."
+    else:
+        suggestion = (
+            f"Add a bound check to ensure the access stays within the {object} limits.\n"
+            f"The current operation results in an {issue_type} of {diff} bytes."
+        )
 
     print_error(f"Invalid access to {object}", location=location, suggestion=suggestion, appendix=appendix)
-        
-def __check_mem_access_check(output, line):
+def __check_mem_access_check(output, line, reg):
 
     invalid_accesss_to_map_key_pattern = re.search(r"invalid access to map key, key_size=(\d+) off=(-?\d+) size=(\d+)", line)
     if invalid_accesss_to_map_key_pattern:
@@ -259,7 +273,7 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_map_key_pattern.group(1)),
             int(invalid_accesss_to_map_key_pattern.group(2)),
             int(invalid_accesss_to_map_key_pattern.group(3)),
-            "map key"
+            "map key", reg
         )
         return
 
@@ -270,7 +284,7 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_map_value_pattern.group(1)),
             int(invalid_accesss_to_map_value_pattern.group(2)),
             int(invalid_accesss_to_map_value_pattern.group(3)),
-            "map value"
+            "map value", reg
         )
         return
     invalid_accesss_to_packet_pattern = re.search(r"invalid access to packet, off=(-?\d+) size=(\d+), R(\d+)\(id=(\d+),off=(-?\d+),r=(\d+)\)", line)
@@ -280,7 +294,7 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_packet_pattern.group(6)),
             int(invalid_accesss_to_packet_pattern.group(1)),
             int(invalid_accesss_to_packet_pattern.group(2)),
-            "packet"
+            "packet", reg
         )
         return
     invalid_accesss_to_mem_region_pattern = re.search(r"invalid access to memory, mem_size=(\d+) off=(-?\d+) size=(\d+)", line)
@@ -290,18 +304,18 @@ def __check_mem_access_check(output, line):
             int(invalid_accesss_to_mem_region_pattern.group(1)),
             int(invalid_accesss_to_mem_region_pattern.group(2)),
             int(invalid_accesss_to_mem_region_pattern.group(3)),
-            "memory region"
+            "memory region", reg
         )
         return
-def min_value_is_outside_mem_range(output):
+def min_value_is_outside_mem_range(output, reg):
     line = output.pop(-3)
-    __check_mem_access_check(output, line)
-def max_value_is_outside_mem_range(output):
+    __check_mem_access_check(output, line, reg)
+def max_value_is_outside_mem_range(output, reg):
     line = output.pop(-3)
-    __check_mem_access_check(output, line)
-def offset_outside_packet(output):
+    __check_mem_access_check(output, line, reg)
+def offset_outside_packet(output, reg):
     line = output.pop(-3)
-    __check_mem_access_check(output, line)
+    __check_mem_access_check(output, line, reg)
 # probably not testable        
 
 def min_value_is_negative(output):
@@ -318,8 +332,14 @@ def unbounded_mem_access(output, reg):
         value = ""
     
     suggestion = f"Add '{value} &= const' or 'if ({value} < const)'"
-    
-    if "bpf_probe_read_" in location and reg == '2':
+
+    found = False
+    if location is None:
+        for l in reversed(output):
+            if "bpf_probe_read_" in l and reg == '2':
+                found=True
+                break
+    elif found or ("bpf_probe_read_" in location and reg == '2'):
         try:
             buff = location.split("(")[1].split(")")[0].split(",")[int(1)-1].strip()
         except (IndexError, ValueError, AttributeError) as e:
@@ -389,7 +409,8 @@ def invalid_unbounded_valiable_offset(output, op):
         
 def write_to_change_key_not_allowed(output):
     location = get_line(output)
-    print_error(f"Cannot write into a pointer to map key", location)
+    appendix="You might not have the capabilities to write into it"
+    print_error(f"Cannot write into a pointer to map key", location, appendix=appendix)
 
         
 def rd_leaks_addr_into_map(output):
@@ -447,7 +468,13 @@ def min_value_is_negative_2(output, reg):
     
     suggestion = f"Use {value} as unsigned or add '{value} &= const'"
     
-    if "bpf_probe_read_" in location and reg == '2':
+    found = False
+    if location is None:
+        for l in reversed(output):
+            if "bpf_probe_read_" in l and reg == '2':
+                found=True
+                break
+    elif found or ("bpf_probe_read_" in location and reg == '2'):
         try:
             buff = location.split("(")[1].split(")")[0].split(",")[int(1)-1].strip()
         except (IndexError, ValueError, AttributeError) as e:
@@ -574,13 +601,22 @@ def invalid_func(output, func):
         
 def unknown_func(output, func, c_source_files):
     section_name = get_section_name(c_source_files)
-    suggestion = f"Check if the helper function you are using is compatible with the program type {section_name} at https://man7.org/linux/man-pages/man7/bpf-helpers.7.html.\nOtherwise, your kernel might be too old or the helper has been compiled out."
+    suggestion = f"Check if the helper function you are using is compatible with the program type {section_name}\n"+ \
+                 f"for your kernel version {get_kernel_version()} at https://docs.ebpf.io/linux/helper-function/{func}/"
     location = get_line(output)
     print_error(f"Unknown function {func}", location, suggestion=suggestion)
    
-def tail_call_lead_to_leak(output):
-    location = get_line(output)
-    print_error(f"Tail call invocation before releasing reference leads to reference leak", location)
+def tail_call_lead_to_leak(output, output_raw, bytecode_file):
+    alloc_insn=output[-3].split("=")[-1].strip()
+    flag = False
+    o = add_line_number(output_raw, bytecode_file, 0, alloc_insn)
+    for s in reversed(o):
+        if s.startswith(f"{alloc_insn}: "):
+            flag = True
+        if flag and s.startswith(';'):
+            print_error("Reference must be released before tail call invocation", s)
+            return
+
 
 def arg_pointer_must_point_to_scalar(output, arg, btf, btf_name, void):
     if void:
@@ -918,13 +954,22 @@ def caller_passes_invalid_args_into_func(output, func_num, func_name):
 
 def kernel_subsystem_misconfigured_verifier(output):
     location = get_line(output)
-    if "bpf_tail_call" in location:
+    found = False
+    if location is None:
+        for l in reversed(output):
+            if l == "kernel subsystem misconfigured verifier":
+                found=True
+            if found and "bpf_tail_call" in l:
+                suggestion="bpf_tail_call() must be used with a map of type BPF_MAP_TYPE_PROG_ARRAY"
+                break
+    elif "bpf_tail_call" in location:
         suggestion="bpf_tail_call() must be used with a map of type BPF_MAP_TYPE_PROG_ARRAY"
     print_error(f"Map configuration error", location=location, suggestion=suggestion)
 
 def read_from_map_forbidden(output, value_size, off, size):
     location = get_line(output)
-    print_error(f"Cannot read from read only map", location)
+    appendix="You might not have the capabilities to read from it"
+    print_error(f"Cannot read from a pointer to map key", location, appendix=appendix)
 
 def sleepable_programs_can_only_use(output):
     print_error(f"Sleepable programs can only use array, hash, ringbuf and local storage maps")
@@ -936,3 +981,22 @@ def func_supported_only_for_fentry(output, func_name):
 def helper_might_sleep(output):
     location = get_line(output)
     print_error(f"Helper function might sleep in a non-sleepable prog", location)
+
+def invalid_zero_size_read(output, register):
+    location = get_line(output)
+    param = get_param(location, register)
+    appendix = f"Variable ({param}) may be zero due to absent lower bound check or 32/64 bit conversion"
+    print_error(f"Helper function parameter {register} might be zero", location, appendix=appendix)
+
+def invalid_arg_type_sock(output):
+    location = get_line(output)
+    print_error(f"Incompatible helper function for SOCKMAP/SOCKHASH", location)
+
+def only_one_cgroup_storage(output):
+    appendix="An eBPF program can only use one cgroup storage map of each type (shared or per-cpu)"
+    suggestion="Combine your data into a single struct"
+    print_error("Too many cgroup storage maps used", appendix=appendix, suggestion=suggestion)
+
+def more_tan_one_arg_with_ref(output, reg, ref1, ref2):
+    location = get_line(output)
+    print_error(f"Passing multiple reference-tracked objects to a single helper is not allowed", location)
