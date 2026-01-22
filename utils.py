@@ -132,7 +132,7 @@ def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
         if not insn_num: 
             last_number_pattern = re.search(r"(\d+)\:.*", o)
             if last_number_pattern:
-                if insn_start and last_number_pattern.group(1) > insn_start:
+                if insn_start and int(last_number_pattern.group(1)) > int(insn_start):
                     continue 
                 insn_num = last_number_pattern.group(1)
         else:
