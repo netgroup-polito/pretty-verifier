@@ -142,7 +142,7 @@ class BPFTestCase:
         # command used for coverage
         # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
 
-        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | python3 ../pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
+        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /dev/null 2>&1 | python3 ../src/main.py -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
         #command = f"python3 ./pretty_verifier.py -f {directory}/{self.bpf_file}.bpf.c"
         
         try:
@@ -338,9 +338,10 @@ class BPFTestShaker:
 
 if __name__ == "__main__":
 
-    path = os.path.abspath("./test_cases")
+    this_dir = os.path.dirname(os.path.abspath(__file__))
 
-    print(f"Using path: {path}")
+    path = os.path.join(this_dir, "test_cases")
+
     test_suite = BPFTestSuite(path, "make", "make clear")
 
     #invalid variable offset read from stack

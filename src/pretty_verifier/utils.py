@@ -59,63 +59,6 @@ def print_error(message, location=None, suggestion=None, appendix=None):
     print(error_message)
 
 
-def add_line_number_old(output_raw, c_source_files):
-    if c_source_files == None or len(c_source_files) == 0:
-        return output_raw
-
-    c_files = []
-
-    for c_source_file in c_source_files:
-        with open(c_source_file, 'r') as file:
-            c_files.append({
-                'lines': file.readlines(),
-                'file_name': c_source_file,
-                'repetitions': {},
-                'output': [],
-                'matches': 0
-            })
-
-    
-
-    for line in output_raw:
-
-        for c_file in c_files: 
-            if line.startswith(';'):
-                rep = 0
-
-                if line in c_file['repetitions']:
-                    rep = c_file['repetitions'][line]
-                else:
-                    rep = 0
-                    c_file['repetitions'][line] = 0
-
-                for c_line_index, c_line in enumerate(c_file['lines']):
-                    if c_line.strip() == line[2:]:
-                        if rep == 0:
-                            c_file['repetitions'][line] += 1
-                            modified_line = f";{c_line_index+1}{line} in file {c_file['file_name']}"
-                            c_file['matches'] += 1
-                            break
-                        else:
-                            rep -= 1
-                        
-            else:
-                modified_line = line
-        
-            c_file['output'].append(modified_line)
-
-    # we look for the file that has changed more lines
-    # that, if correct, should be the one the verifier is referring to
-    matches = 0
-    output = None
-    for c_file in c_files:
-        if c_file['matches'] > matches:
-            output = c_file['output']
-            matches = c_file['matches']
-
-    return output
-
-
 def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
     command = f"llvm-objdump --disassemble -l {obj_file}"
     output = []

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from error_managers import *
-from utils import add_line_number, get_bytecode, set_error_number
+from .error_managers import *
+from .utils import add_line_number, get_bytecode, set_error_number
 import re
 
 def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):

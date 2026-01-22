@@ -16,14 +16,13 @@
 
 import sys
 import argparse
-from handler import handle_error
-from full_mode import get_output
-from utils import enable_enumerate
+from .handler import handle_error
+from .full_mode import get_output
+from .utils import enable_enumerate
+from .generate_loader import genloader
 
 def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
     verifier_log = []
-    #processsing = False
-    # maybe needed for some output
     processsing = True
 
     for line in output:
@@ -35,10 +34,17 @@ def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
         if processsing and line.startswith("processed"):
             handle_error(verifier_log, c_source_files, bytecode_file, llvm_objdump)
 
-    
 
 def main():
-    parser = argparse.ArgumentParser(description="Load an eBPF program and interpret verifier errors.")
+
+    if len(sys.argv) > 1 and sys.argv[1] == "genloader":
+        genloader(sys.argv[2:])
+        return
+    
+    parser = argparse.ArgumentParser(description="Load an eBPF program and interpret verifier errors.", 
+                                     formatter_class=argparse.RawTextHelpFormatter,
+                                     epilog="  genloader [-h -d -l -t]\n\t\t\tGenerate a script to run eBPF programs with the Pretty Verifier integration"
+                                     "\n\t\t\t(Run 'pretty-verifier genloader --help' to see usage)")
     parser.add_argument("-l", "--logfile", required=False, help="The eBPF verifier log file when used with no pipe")
     parser.add_argument("-c", "--source", nargs="+", required=False, help="The C source files (e.g., hello.bpf.c hello_helpers.c)")
     parser.add_argument("-o", "--bytecode", required=False, help="The result of the clang compilation (e.g., hello.bpf.o)")
@@ -55,7 +61,12 @@ def main():
             print(f"Error: Log file '{logfile}' not found.")
             sys.exit(1)
     else:
-        output = sys.stdin
+        if not sys.stdin.isatty():
+            output = sys.stdin
+        
+        else:
+            parser.print_help()
+            sys.exit(1)
         
     c_source_files = args.source
     bytecode_file = args.bytecode

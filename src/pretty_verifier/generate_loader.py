@@ -40,50 +40,50 @@ fi
 
 BASE="$DIR/$BASENAME_NOEXT"
 
+SRC_FILE="$INPUT"
+BPF_OFILE="$OBJ_FILE"
+BPF_NAME="$BASENAME_NOEXT"
 
-{loading_line} 2>&1 | python3 "{pretty_path}" -c $SRC_FILE -o $BPF_OFILE
+{loading_line} 2>&1 | pretty-verifier -c "$SRC_FILE" -o "$BPF_OFILE"
 """
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate a BPF loader script with pretty verifier integration.")
+def genloader(args_list):
+    parser = argparse.ArgumentParser(
+        prog="pretty-verifier genloader",
+        description="Generate a BPF loader script with pretty verifier integration."
+    )
     parser.add_argument(
-        "--output-dir", "-d",
+        "-d",  "--output-dir", 
         type=str,
         default=".",
         help="Directory where the bash script will be created"
     )
     parser.add_argument(
-        "--script-name", "-n",
+        "-n", "--script-name", 
         type=str,
         default="load.sh",
         help="Filename for the generated script"
     )
     parser.add_argument(
-        "--load-command", "-l",
+        "-l", "--load-command", 
         type=str,
         default="",
         help="Custom BPF loading line"
     )
     parser.add_argument(
-        "--test", "-t",
+        "-t", "--test", 
         action="store_true",
         default=False,
         help="Run the script in test mode (no actual loading, just print the verifier error message)"
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(args_list)
 
     output_dir = Path(args.output_dir).resolve()
     if not output_dir.is_dir():
         print(f"Error: {output_dir} is not a valid directory.")
         return
 
-    curr_dir = Path(__file__).resolve().parent
-    pretty_path_loc = curr_dir / "pretty_verifier.py"
-    if not pretty_path_loc.is_file():
-        print("Error: directory not recognized as a Pretty Verifier repository.")
-        return
-    pretty_path = os.path.relpath(pretty_path_loc, start=output_dir.resolve())
     if args.test:
         if args.load_command == "":
             loading_line = 'BPF_PATH="/dev/null"\n\nsudo bpftool prog load "$BPF_OFILE" "$BPF_PATH"'
@@ -95,10 +95,8 @@ def main():
         else:
             loading_line = args.load_command
 
-    # Composizione dello script
     bash_script = TEMPLATE.format(
-        loading_line=loading_line,
-        pretty_path=pretty_path
+        loading_line=loading_line
     )
 
     output_script = output_dir / args.script_name
@@ -110,4 +108,5 @@ def main():
     print(f"Script generated at: {output_script}")
 
 if __name__ == "__main__":
-    main()
+    import sys
+    genloader(sys.argv[1:])

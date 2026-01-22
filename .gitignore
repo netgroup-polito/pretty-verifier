@@ -1,11 +1,12 @@
 __pycache__/
 env/
 .vscode/
-
+build/
+*.egg-info/
 *.swp
 *.~
 *.log
-
+.idea/
 .coverage
 
 *.code-workspace
