@@ -139,7 +139,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         set_error_number(count)
         max_value_is_outside_mem_range(
             output,
-            min_value_is_outside_mem_range_pattern.group(1)
+            max_value_is_outside_mem_range_pattern.group(1)
         )
         return
     
@@ -149,7 +149,7 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
         set_error_number(count)
         offset_outside_packet(
             output,
-            min_value_is_outside_mem_range_pattern.group(1)
+            offset_outside_packet_pattern.group(1)
         )
         return
     

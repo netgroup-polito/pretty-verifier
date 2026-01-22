@@ -142,7 +142,7 @@ class BPFTestCase:
         # command used for coverage
         # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
 
-        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /dev/null 2>&1 | python3 ../src/main.py -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
+        command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /dev/null 2>&1 | pretty-verifier -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
         #command = f"python3 ./pretty_verifier.py -f {directory}/{self.bpf_file}.bpf.c"
         
         try:
@@ -413,8 +413,8 @@ if __name__ == "__main__":
                                 line_number= 35,
                                 code = "char value = array[i];",
                                 file_name = path+"/max_value_is_outside_map_value.bpf.c",
-                                appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the map value you are trying to access.",
-                                suggestion="Make sure that the index \"i\" has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
+                                appendix="Access is 1 bytes past the end of the map value (capacity: 10 bytes).",
+                                suggestion="Make sure that the index 'i' is checked to be within the map value bounds (0 to 9)."
                             ), bpf_file="max_value_is_outside_map_value")   
     test_suite.add_test_case("min_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
@@ -422,8 +422,8 @@ if __name__ == "__main__":
                                 line_number= 46,
                                 code = "char a = *((char*)(message - 5));",
                                 file_name = path+"/min_value_is_outside_map_value.bpf.c",
-                                appendix="The eBPF verifier is detecting 1 bytes under the lower bound of the map value you are trying to access.",
-                                suggestion="Make sure that the index has been checked to be within the map value allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes under the lower bound)."
+                                appendix="Access is 1 bytes before the beginning of the map value (capacity: 16 bytes).",
+                                suggestion="Add a bound check to ensure the access stays within the map value limits.\nThe current operation results in an underflow of 1 bytes."
                             ), bpf_file="min_value_is_outside_map_value")
     test_suite.add_test_case("offset_outside_packet",                              
                             PrettyVerifierOutput(
@@ -431,8 +431,8 @@ if __name__ == "__main__":
                                 line_number= 32,
                                 code = "s[0] = *((unsigned char*)(data + 100));",
                                 file_name = path+"/offset_outside_packet.bpf.c",
-                                appendix="The eBPF verifier is detecting 1 bytes over the upper bound of the packet you are trying to access.",
-                                suggestion="Make sure that the index has been checked to be within the packet allocated memory, or that the current bound check is restrictive enough (you are off by 1 bytes over the upper bound)."
+                                appendix="Access is 1 bytes past the end of the packet (capacity: 100 bytes).",
+                                suggestion="Add a bound check to ensure the access stays within the packet limits.\nThe current operation results in an overflow of 1 bytes."
                             ))
     #invaid mem accesso null ptr to mem
     test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem",                              
@@ -602,9 +602,9 @@ if __name__ == "__main__":
                             ))     
     test_suite.add_test_case("tail_call_lead_to_leak",                              
                             PrettyVerifierOutput(
-                                error_message="Tail call invocation before releasing reference leads to reference leak",
-                                line_number= 32,
-                                code = "bpf_tail_call(ctx, &map_0, v5);",
+                                error_message="Reference must be released before tail call invocation",
+                                line_number= 24,
+                                code = "v2 = bpf_ringbuf_reserve(&map_1, v0, v1);",
                                 file_name = path+"/tail_call_lead_to_leak.bpf.c",
                             ))  
     test_suite.add_test_case("tail_calls_not_allowed_if_frame_size_exceeded",                              
@@ -621,10 +621,11 @@ if __name__ == "__main__":
                             ))    
     test_suite.add_test_case("read_from_map_forbidden",                              
                             PrettyVerifierOutput(
-                                error_message="Cannot read from read only map",
+                                error_message="Cannot read from a pointer to map key",
                                 line_number= 37,
                                 code = "v1 = bpf_map_lookup_elem(&map_1, &v0->e0);",
                                 file_name = path+"/read_from_map_forbidden.bpf.c",
+                                appendix="You might not have the capabilities to read from it"
                             ))     
     test_suite.add_test_case("map_has_to_have_BTF",                              
                             PrettyVerifierOutput(
