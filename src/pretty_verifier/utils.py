@@ -39,12 +39,12 @@ def print_error(message, location=None, suggestion=None, appendix=None):
             f"\n\033[91m{error_number_string}error\033[0m: "+ \
             f"\033[94m{message}\033[0m\n"
 
-
     if location!=None:
         n_line = location.split(';')[1].strip('<>')
         file_names = location.split(' in file ')
-        code = file_names[0].split(';')[2].strip()
-        code += ';'*(len(location.split(';'))-3)
+        code = file_names[0][1:]
+        start_index = code.find(";")
+        code = code[start_index+2:]
         
         file_name = file_names[len(file_names)-1].strip()
         error_message += f"   {n_line} | {code}\n    {' ' * len(n_line)}| in file {file_name}\n"
@@ -102,6 +102,26 @@ def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
             output.append(o)
 
     return output
+
+def get_line_number_loop(output_raw, obj_file, insn):
+    command = f"llvm-objdump --disassemble -l {obj_file}"
+    try:
+        objdump = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"ERROR: Invalid object file {obj_file}")
+    found = False
+    line = ""
+    for o in output_raw:
+        if o.startswith("; "):
+            line = o
+    for o in reversed(objdump.stdout.split('\n')):
+        l = o.strip()
+        if l.startswith(f"{insn}"):
+            found = True
+        if found and l.startswith("; "):
+            targets = l.split(":")
+            filename = filename = targets[0][2:]
+            return f";{int(targets[1])}{line} in file {filename}"
 
 
 def get_bytecode(bytecode_file):

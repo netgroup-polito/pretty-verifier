@@ -782,7 +782,8 @@ def handle_error(output_raw, c_source_files, bytecode_file, llvm_objdump=None):
     if infinite_loop_detected_pattern:
         set_error_number(count)
         infinite_loop_detected(
-            output,
+            output_raw,
+            bytecode_file,
             int(infinite_loop_detected_pattern.group(1))
         )
         return

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version
+from .utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version, get_line_number_loop
 import re
 import math
 
@@ -879,32 +879,8 @@ def unreachable_insn(output, insn_num):
             print_error(f"unreachable code not allowed in BPF program", location=s)
             return
         
-def infinite_loop_detected(output, insn_num):
-    found_insn = False
-    line = None
-
-    for s in reversed(output):
-         # store the first occurence of C line
-        if line == None and s.startswith(';'):
-            line = s
-        # match the insn lines and see if they can match the insn_num
-        insn_line_pattern = re.search(r"(\d+): (.*?)", s)
-        if insn_line_pattern:
-            # the target insn is later in the output, continue
-            if int(insn_line_pattern.group(1)) > insn_num:
-                continue
-            # the target is found, now we look for the first C line
-            elif int(insn_line_pattern.group(1)) == insn_num:
-                found_insn = True
-            # the target cannot be found (the insn num is strictly decreasing)
-            # using the first occurence of c line
-            else: 
-                break
-        # we look for the first C line
-        if found_insn and s.startswith(';'):
-            line = s
-            break
-
+def infinite_loop_detected(output_raw, obj_file, insn_num):
+    line = get_line_number_loop(output_raw, obj_file, insn_num)
     suggestion = "You may add #pragma unroll before the for loop line"
     print_error(f"Infinite loop detected", location=line, suggestion=suggestion)
 
@@ -936,7 +912,6 @@ def invalid_bpf_context_access(output, c_source_files):
     section_name = get_section_name(c_source_files)
     appendix = f"Cannot read or write in the context parameter for the {section_name} program type"
     suggestion = "https://docs.ebpf.io/linux/program-type/ has a detailed table on which fields of the context, for each program type, can be read or written, in the \"Context/Context fields section\"."
-
     for s in reversed(output):
         if s.startswith(';'):
             print_error(f"Invalid access to context parameter", location=s, appendix=appendix, suggestion=suggestion)
