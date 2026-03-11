@@ -29,5 +29,5 @@ BPF_OFILE="${BPF_NAME}.o"
 # BPF_PATH="/sys/fs/bpf/${BPF_NAME}"
 export PYTHONPATH=../../src
 
-sudo bpftool prog load "$BPF_OFILE" "/dev/null" 2>&1 | python3 -m pretty_verifier.main -c "${BPF_NAME}.c" -o "${BPF_NAME}.o" -m
+sudo bpftool prog load "$BPF_OFILE" "/dev/null" 2>&1 | python3 -m pretty_verifier.main -c "${BPF_NAME}.c" -o "${BPF_NAME}.o" #-m
 #sudo bpftool prog load "$BPF_OFILE" "/dev/null" 2>&1 | pretty-verifier -c "${BPF_NAME}.c" -o "${BPF_NAME}.o" -m

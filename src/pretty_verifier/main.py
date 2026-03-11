@@ -18,10 +18,11 @@ import sys
 import argparse
 from .handler import handle_error
 from .full_mode import get_output
-from .utils import enable_enumerate
+from .utils import enable_enumerate, get_error_number
 from .generate_loader import genloader
+from .llm import llm_analyze
 
-def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
+def process_input(c_source_files, bytecode_file, output, llm, llvm_objdump=None, model_repo=None, model_name=None):
     verifier_log = []
     processsing = True
 
@@ -33,6 +34,15 @@ def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
             processsing = True
         if processsing and line.startswith("processed"):
             handle_error(verifier_log, c_source_files, bytecode_file, llvm_objdump)
+            if llm:
+                llm_suggestion = llm_analyze(
+                    verifier_log, 
+                    c_source_files, 
+                    get_error_number(), 
+                    model_repo=model_repo, 
+                    model_name=model_name
+                )                
+            print(f"\033[90m{llm_suggestion}\033[0m\n")
 
 
 def main():
@@ -50,16 +60,30 @@ def main():
     parser.add_argument("-o", "--bytecode", required=False, help="The result of the clang compilation (e.g., hello.bpf.o)")
     parser.add_argument("-f", "--full-mode", required=False, help="Enable test before compilation mode (requires C source file with entry point)")
     parser.add_argument("-n", "--enumerate", required=False, help="Add an error number to each error", action='store_true')
+    parser.add_argument("-m", "--llm", required=False, help="Enable LLM suggestion", action='store_true')
+    parser.add_argument("--model-repo", required=False, default="Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF", help="HuggingFace repository ID (requires -llm)")
+    parser.add_argument("--model-name", required=False, default="qwen2.5-coder-1.5b-instruct-q4_k_m.gguf", help="Exact model filename in the repo (.gguf) (requires -llm)")
 
     args = parser.parse_args()
+
+    # llm sanitizing
+
+    has_repo = '--model-repo' in sys.argv
+    has_name = '--model-name' in sys.argv
+
+    if (has_repo or has_name) and not args.llm:
+        parser.error("Custom model arguments require the -m or --llm flag.")
+    
+    if has_repo != has_name:
+        parser.error("--model-repo and --model-name must be provided together.")
+
     logfile = args.logfile
     if logfile:
         try:
             with open(logfile, 'r') as f:
                 output = f.readlines()
         except FileNotFoundError:
-            print(f"Error: Log file '{logfile}' not found.")
-            sys.exit(1)
+            parser.error(f"Error: Log file '{logfile}' not found.")
     else:
         if not sys.stdin.isatty():
             output = sys.stdin
@@ -71,15 +95,18 @@ def main():
     c_source_files = args.source
     bytecode_file = args.bytecode
     full_mode = args.full_mode
+    llm = args.llm
+    model_repo = args.model_repo
+    model_name = args.model_name
 
     if args.enumerate:
         enable_enumerate()
 
     if not full_mode:
-        process_input(c_source_files, bytecode_file, output)
+        process_input(c_source_files, bytecode_file, output, llm, model_repo=model_repo, model_name=model_name)
     else:
         output, llvm_objdump = get_output(full_mode)
-        process_input(full_mode, bytecode_file, output, llvm_objdump)
+        process_input(full_mode, bytecode_file, output, llm, llvm_objdump=llvm_objdump, model_repo=model_repo, model_name=model_name)
 
 if __name__ == "__main__":
     main()

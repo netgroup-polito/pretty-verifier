@@ -15,6 +15,8 @@
 import subprocess
 import re
 import os
+from pathlib import Path
+
 
 error_number = None
 
@@ -26,6 +28,8 @@ def set_error_number(n):
     global error_number
     if error_number != None:
         error_number = n
+def get_error_number():
+    return error_number
 
 def print_error(message, location=None, suggestion=None, appendix=None):
     global error_number
@@ -159,3 +163,7 @@ def get_kernel_version():
     info = os.uname().release.split(".")
     return f"{info[0]}.{info[1]}"
 
+def get_cache_path():
+    cache_path = Path.home() / ".cache" / "pretty_verifier"
+    cache_path.mkdir(parents=True, exist_ok=True)
+    return cache_path

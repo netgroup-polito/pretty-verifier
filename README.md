@@ -369,6 +369,13 @@ cargo build
 sudo ./target/debug/{program_name}
 ```
 
+# LLM Analysis
+
+Use the `--llm` (or `-m`) flag to enable a local LLM that analyzes your C code, the verifier log, and the corresponding Linux kernel `verifier.c` context. It explains the eBPF violation and provides a C code snippet to fix it.
+
+By default, `pretty-verifier` uses the `Qwen2.5-Coder-1.5B` model. You can override this by providing a custom Hugging Face GGUF model using the `--model-repo` and `--model-name` flags.
+
+
 # Development mode
 In order to run Pretty Verifier without installation, into the current folder, run
 
