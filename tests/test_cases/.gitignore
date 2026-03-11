@@ -1,5 +1,5 @@
 vmlinux.h
-
+*.csv
 *.o
-
+*.py
 generated.code-workspace
