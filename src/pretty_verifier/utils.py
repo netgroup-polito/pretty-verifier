@@ -149,6 +149,67 @@ def get_line(output):
         if s.startswith(';'):
             return s
 
+def get_indexed_access(line):
+    index_regex = re.search(
+        r"\b([_a-zA-Z][_a-zA-Z0-9]*(?:\s*(?:\.|->)\s*[_a-zA-Z][_a-zA-Z0-9]*)*)"
+        r"\s*\[\s*(\b[_a-zA-Z][_a-zA-Z0-9]*\b)\s*\]",
+        line
+    )
+
+    if not index_regex:
+        return None, None
+
+    indexed_object = re.sub(r"\s+", "", index_regex.group(1))
+    index = index_regex.group(2)
+    return indexed_object, index
+
+def get_register_offset(output, reg):
+    if not output or reg is None:
+        return None
+
+    register_pattern = re.compile(rf"\bR{re.escape(str(reg))}(?:_[rw])?=([^\s]+)")
+    offset_pattern = re.compile(r"(?:^|,)off=(-?\d+)(?:,|\)|$)")
+
+    for line in reversed(output):
+        matches = register_pattern.findall(line)
+        for register_state in reversed(matches):
+            offset = offset_pattern.search(register_state)
+            if offset:
+                return int(offset.group(1))
+
+    return None
+
+def get_array_declared_size(location, array_name):
+    if not location or not array_name or "." in array_name or "->" in array_name:
+        return None
+
+    try:
+        error_line = int(location.split(';')[1].strip('<>'))
+        file_name = location.split(' in file ')[-1].strip()
+    except (IndexError, ValueError, AttributeError):
+        return None
+
+    declaration_pattern = re.compile(
+        rf"^\s*(?:[_a-zA-Z][_a-zA-Z0-9]*\s+|\*|\s)+"
+        rf"{re.escape(array_name)}\s*\[\s*(\d+)\s*\]"
+    )
+
+    declared_size = None
+    try:
+        with open(file_name, 'r') as file:
+            for line_number, source_line in enumerate(file, start=1):
+                if line_number >= error_line:
+                    break
+
+                source_line = source_line.split("//", 1)[0]
+                match = declaration_pattern.search(source_line)
+                if match:
+                    declared_size = int(match.group(1))
+    except (OSError, ValueError):
+        return None
+
+    return declared_size
+
 def get_param(line, reg):
     try:
         ret = line.split("(")[1].split(")")[0].split(",")[int(reg)-1].strip()
@@ -158,4 +219,3 @@ def get_param(line, reg):
 def get_kernel_version():
     info = os.uname().release.split(".")
     return f"{info[0]}.{info[1]}"
-

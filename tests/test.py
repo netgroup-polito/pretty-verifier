@@ -410,11 +410,11 @@ if __name__ == "__main__":
     test_suite.add_test_case("max_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(
                                 error_message="Invalid access to map value",
-                                line_number= 35,
+                                line_number= 20,
                                 code = "char value = array[i];",
                                 file_name = path+"/max_value_is_outside_map_value.bpf.c",
-                                appendix="Access is 1 bytes past the end of the map value (capacity: 10 bytes).",
-                                suggestion="Make sure that the index 'i' is checked to be within the map value bounds (0 to 9)."
+                                appendix="Access is 1 bytes past the end of the map value.",
+                                suggestion="Make sure that the index 'i' is checked to be within the 'array' bounds (0 to 5)."
                             ), bpf_file="max_value_is_outside_map_value")   
     test_suite.add_test_case("min_value_is_outside_mem_range",                              
                             PrettyVerifierOutput(

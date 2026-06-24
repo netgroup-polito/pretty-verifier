@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version, get_line_number_loop
+from .utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version, get_line_number_loop, get_indexed_access, get_register_offset, get_array_declared_size
 import re
 import math
 
@@ -250,18 +250,26 @@ def invalid_accesss_to_object(output, value_size, offset, size, object, reg):
         err_description = "out of bounds"
         issue_type = "out of bounds access"
 
-    appendix = f"Access{param_str} is {err_description} of the {object} (capacity: {value_size} bytes)."
-
-    index_regex = re.search(r"(.*)\[(\b[_a-zA-Z][_a-zA-Z0-9]*\b)\](.*)", location)
+    indexed_object, index = get_indexed_access(location)
+    indexed_object_size = None
+    suggestion = (
+        f"Add a bound check to ensure the access stays within the {object} limits.\n"
+        f"The current operation results in an {issue_type} of {diff} bytes."
+    )
     
-    if index_regex:
-        index = index_regex.group(2)
-        suggestion = f"Make sure that the index '{index}' is checked to be within the {object} bounds (0 to {value_size-1})."
-    else:
-        suggestion = (
-            f"Add a bound check to ensure the access stays within the {object} limits.\n"
-            f"The current operation results in an {issue_type} of {diff} bytes."
-        )
+    if index:
+        register_offset = get_register_offset(output, reg) if object == "map value" else None
+        if register_offset is not None and 0 < register_offset < value_size:
+            indexed_object_size = value_size - register_offset
+        else:
+            indexed_object_size = get_array_declared_size(location, indexed_object)
+
+        if indexed_object_size:
+            upper_bound = indexed_object_size - 1
+            suggestion = f"Make sure that the index '{index}' is checked to be within the '{indexed_object}' bounds (0 to {upper_bound})."
+
+    capacity = "" if indexed_object_size else f" (capacity: {value_size} bytes)"
+    appendix = f"Access{param_str} is {err_description} of the {object}{capacity}."
 
     print_error(f"Invalid access to {object}", location=location, suggestion=suggestion, appendix=appendix)
 def __check_mem_access_check(output, line, reg):
