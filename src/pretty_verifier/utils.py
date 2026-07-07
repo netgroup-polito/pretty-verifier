@@ -180,8 +180,11 @@ def get_register_offset(output, reg):
     return None
 
 def get_array_declared_size(location, array_name):
-    if not location or not array_name or "." in array_name or "->" in array_name:
+    if not location or not array_name:
         return None
+
+    member_lookup = "." in array_name or "->" in array_name
+    lookup_name = re.split(r"\.|->", array_name)[-1] if member_lookup else array_name
 
     try:
         error_line = int(location.split(';')[1].strip('<>'))
@@ -191,24 +194,48 @@ def get_array_declared_size(location, array_name):
 
     declaration_pattern = re.compile(
         rf"^\s*(?:[_a-zA-Z][_a-zA-Z0-9]*\s+|\*|\s)+"
-        rf"{re.escape(array_name)}\s*\[\s*(\d+)\s*\]"
+        rf"{re.escape(lookup_name)}\s*\[\s*(\d+)\s*\]"
     )
 
-    declared_size = None
     try:
         with open(file_name, 'r') as file:
-            for line_number, source_line in enumerate(file, start=1):
-                if line_number >= error_line:
-                    break
-
-                source_line = source_line.split("//", 1)[0]
-                match = declaration_pattern.search(source_line)
-                if match:
-                    declared_size = int(match.group(1))
+            source_lines = file.readlines()
     except (OSError, ValueError):
         return None
 
-    return declared_size
+    for limit in (error_line, None):
+        record_depth = 0
+        declared_size = None
+        declared_sizes = set()
+
+        for line_number, source_line in enumerate(source_lines, start=1):
+            if limit and line_number >= limit:
+                break
+
+            source_line = source_line.split("//", 1)[0]
+            starts_record = re.search(r"\b(?:struct|union)\b[^;{]*\{", source_line)
+            if starts_record:
+                record_depth += source_line.count("{") - source_line.count("}")
+                continue
+
+            in_record = record_depth > 0
+            if member_lookup == in_record:
+                match = declaration_pattern.search(source_line)
+                if match:
+                    if member_lookup:
+                        declared_sizes.add(int(match.group(1)))
+                    else:
+                        declared_size = int(match.group(1))
+
+            if record_depth:
+                record_depth += source_line.count("{") - source_line.count("}")
+
+        if member_lookup and len(declared_sizes) == 1:
+            return declared_sizes.pop()
+        if not member_lookup and declared_size is not None:
+            return declared_size
+
+    return None
 
 def get_param(line, reg):
     try:

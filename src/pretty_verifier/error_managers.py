@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version, get_line_number_loop, get_indexed_access, get_register_offset, get_array_declared_size
+from .utils import print_error, get_section_name, add_line_number,  get_line, get_param, get_kernel_version, get_line_number_loop, get_indexed_access, get_array_declared_size
 import re
 import math
 
@@ -225,6 +225,10 @@ def last_insn_not_exit_jmp(output, bytecode):
     print_error(f"Error using kernel function", location, suggestion=suggestion)
     
         
+def _format_bytes(value):
+    unit = "byte" if value == 1 else "bytes"
+    return f"{value} {unit}"
+
 def invalid_accesss_to_object(output, value_size, offset, size, object, reg):
     location = get_line(output)
     if location is None:
@@ -236,40 +240,39 @@ def invalid_accesss_to_object(output, value_size, offset, size, object, reg):
     access_end = offset + size
     diff = 0
     err_description = ""
-    issue_type = "invalid access"
 
     if offset < 0:
         diff = abs(offset)
-        err_description = f"{diff} bytes before the beginning"
-        issue_type = "underflow"
+        err_description = f"{_format_bytes(diff)} before the beginning"
     elif access_end > value_size:
         diff = access_end - value_size
-        err_description = f"{diff} bytes past the end"
-        issue_type = "overflow"
+        err_description = f"{_format_bytes(diff)} past the end"
     else:
         err_description = "out of bounds"
-        issue_type = "out of bounds access"
 
     indexed_object, index = get_indexed_access(location)
     indexed_object_size = None
     suggestion = (
-        f"Add a bound check to ensure the access stays within the {object} limits.\n"
-        f"The current operation results in an {issue_type} of {diff} bytes."
+        f"Add or tighten a bounds check so the accessed range stays within "
+        f"the {'checked packet range' if object == 'packet' else object + ' limits'}."
     )
     
     if index:
-        register_offset = get_register_offset(output, reg) if object == "map value" else None
-        if register_offset is not None and 0 < register_offset < value_size:
-            indexed_object_size = value_size - register_offset
-        else:
-            indexed_object_size = get_array_declared_size(location, indexed_object)
+        indexed_object_size = get_array_declared_size(location, indexed_object)
 
         if indexed_object_size:
             upper_bound = indexed_object_size - 1
             suggestion = f"Make sure that the index '{index}' is checked to be within the '{indexed_object}' bounds (0 to {upper_bound})."
 
-    capacity = "" if indexed_object_size else f" (capacity: {value_size} bytes)"
-    appendix = f"Access{param_str} is {err_description} of the {object}{capacity}."
+    if indexed_object_size:
+        capacity = ""
+    elif object == "packet":
+        capacity = f" ({_format_bytes(value_size)})"
+    else:
+        capacity = f" (capacity: {_format_bytes(value_size)})"
+
+    object_description = "the checked packet range" if object == "packet" else f"the {object}"
+    appendix = f"Access{param_str} is {err_description} of {object_description}{capacity}."
 
     print_error(f"Invalid access to {object}", location=location, suggestion=suggestion, appendix=appendix)
 def __check_mem_access_check(output, line, reg):

@@ -413,7 +413,7 @@ if __name__ == "__main__":
                                 line_number= 20,
                                 code = "char value = array[i];",
                                 file_name = path+"/max_value_is_outside_map_value.bpf.c",
-                                appendix="Access is 1 bytes past the end of the map value.",
+                                appendix="Access is 1 byte past the end of the map value.",
                                 suggestion="Make sure that the index 'i' is checked to be within the 'array' bounds (0 to 5)."
                             ), bpf_file="max_value_is_outside_map_value")   
     test_suite.add_test_case("min_value_is_outside_mem_range",                              
@@ -422,8 +422,8 @@ if __name__ == "__main__":
                                 line_number= 46,
                                 code = "char a = *((char*)(message - 5));",
                                 file_name = path+"/min_value_is_outside_map_value.bpf.c",
-                                appendix="Access is 1 bytes before the beginning of the map value (capacity: 16 bytes).",
-                                suggestion="Add a bound check to ensure the access stays within the map value limits.\nThe current operation results in an underflow of 1 bytes."
+                                appendix="Access is 1 byte before the beginning of the map value (capacity: 16 bytes).",
+                                suggestion="Add or tighten a bounds check so the accessed range stays within the map value limits."
                             ), bpf_file="min_value_is_outside_map_value")
     test_suite.add_test_case("offset_outside_packet",                              
                             PrettyVerifierOutput(
@@ -431,8 +431,8 @@ if __name__ == "__main__":
                                 line_number= 32,
                                 code = "s[0] = *((unsigned char*)(data + 100));",
                                 file_name = path+"/offset_outside_packet.bpf.c",
-                                appendix="Access is 1 bytes past the end of the packet (capacity: 100 bytes).",
-                                suggestion="Add a bound check to ensure the access stays within the packet limits.\nThe current operation results in an overflow of 1 bytes."
+                                appendix="Access is 1 byte past the end of the checked packet range (100 bytes).",
+                                suggestion="Add or tighten a bounds check so the accessed range stays within the checked packet range."
                             ))
     #invaid mem accesso null ptr to mem
     test_suite.add_test_case("invalid_mem_access_null_ptr_to_mem",                              
