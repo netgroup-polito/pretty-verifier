@@ -1,0 +1,3 @@
+*.o
+vmlinux.h
+*_output.txt

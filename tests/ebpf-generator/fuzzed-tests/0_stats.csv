@@ -1,0 +1,471 @@
+filename,error code,verifier message,pretty verifier message
+prog_000.c,2,"R1 type=sock_or_null expected=sock_common, sock, tcp_sock, xdp_sock",Wrong argument passed to helper function
+prog_001.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_002.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_003.c,2,"R2 type=ringbuf_mem_or_null expected=fp, pkt, pkt_meta, map_key, map_value, mem, ringbuf_mem, buf, trusted_ptr_",Wrong argument passed to helper function
+prog_004.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_005.c,2,"R1 type=ringbuf_mem_or_null expected=fp, pkt, pkt_meta, map_key, map_value, mem, ringbuf_mem, buf, trusted_ptr_",Wrong argument passed to helper function
+prog_006.c,2,"R1 type=ringbuf_mem_or_null expected=fp, pkt, pkt_meta, map_key, map_value, mem, ringbuf_mem, buf, trusted_ptr_",Wrong argument passed to helper function
+prog_007.c,2,R1 type=ringbuf_mem_or_null expected=ringbuf_mem,Wrong argument passed to helper function
+prog_008.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_009.c,2,R1 type=ringbuf_mem_or_null expected=ringbuf_mem,Wrong argument passed to helper function
+prog_010.c,2,"R1 type=ringbuf_mem_or_null expected=fp, pkt, pkt_meta, map_key, map_value, mem, ringbuf_mem, buf, trusted_ptr_",Wrong argument passed to helper function
+prog_011.c,2,R1 type=ringbuf_mem_or_null expected=ringbuf_mem,Wrong argument passed to helper function
+prog_012.c,2,"R3 type=ringbuf_mem_or_null expected=fp, pkt, pkt_meta, map_key, map_value, mem, ringbuf_mem, buf, trusted_ptr_",Wrong argument passed to helper function
+prog_013.c,2,R1 type=ringbuf_mem_or_null expected=ringbuf_mem,Wrong argument passed to helper function
+prog_014.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_015.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock",Wrong argument passed to helper function
+prog_016.c,2,R1 type=ringbuf_mem_or_null expected=ringbuf_mem,Wrong argument passed to helper function
+prog_017.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_018.c,2,R1 type=ringbuf_mem_or_null expected=ringbuf_mem,Wrong argument passed to helper function
+prog_019.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_020.c,2,"R1 type=sock_common_or_null expected=sock_common, sock, tcp_sock, xdp_sock, ptr_, trusted_ptr_",Wrong argument passed to helper function
+prog_021.c,2,"R2 type=ringbuf_mem_or_null expected=fp, pkt, pkt_meta, map_key, map_value, mem, ringbuf_mem, buf, trusted_ptr_",Wrong argument passed to helper function
+prog_022.c,47,unknown func bpf_getsockopt#57,Unknown function bpf_getsockopt
+prog_023.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_024.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_025.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_026.c,10,R2 min value is outside of the allowed memory range,Invalid access to map value
+prog_027.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_028.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_029.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_030.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_031.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_032.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_033.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_034.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_035.c,58,R0 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_036.c,81,tail_call would lead to reference leak,Tail call invocation before releasing reference leads to reference leak
+prog_037.c,42,cannot pass map_type 18 into func bpf_map_delete_elem#3,Map 18 cannot be passed into function 'bpf_map_delete_elem' because of type incompatibility
+prog_038.c,10,R4 min value is outside of the allowed memory range,Invalid access to map value
+prog_039.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_040.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_041.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v4'
+prog_042.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_043.c,58,R0 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_044.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_045.c,58,R0 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_046.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_047.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v3'
+prog_048.c,10,R1 min value is outside of the allowed memory range,Invalid access to memory region
+prog_049.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_050.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_051.c,10,R1 min value is outside of the allowed memory range,Invalid access to memory region
+prog_052.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_053.c,42,cannot pass map_type 14 into func bpf_get_local_storage#81,Map 14 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_054.c,42,cannot pass map_type 27 into func bpf_get_local_storage#81,Map 27 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_055.c,42,cannot pass map_type 10 into func bpf_get_local_storage#81,Map 10 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_056.c,42,cannot pass map_type 3 into func bpf_map_push_elem#87,Map 3 cannot be passed into function 'bpf_map_push_elem' because of type incompatibility
+prog_057.c,42,cannot pass map_type 4 into func bpf_ringbuf_reserve#131,Map 4 cannot be passed into function 'bpf_ringbuf_reserve' because of type incompatibility
+prog_058.c,42,cannot pass map_type 27 into func bpf_current_task_under_cgroup#37,Map 27 cannot be passed into function 'bpf_current_task_under_cgroup' because of type incompatibility
+prog_059.c,42,cannot pass map_type 1 into func bpf_get_local_storage#81,Map 1 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_060.c,42,cannot pass map_type 4 into func bpf_ringbuf_reserve#131,Map 4 cannot be passed into function 'bpf_ringbuf_reserve' because of type incompatibility
+prog_061.c,42,cannot pass map_type 15 into func bpf_ringbuf_reserve#131,Map 15 cannot be passed into function 'bpf_ringbuf_reserve' because of type incompatibility
+prog_062.c,42,cannot pass map_type 9 into func bpf_get_local_storage#81,Map 9 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_063.c,42,cannot pass map_type 4 into func bpf_ringbuf_reserve#131,Map 4 cannot be passed into function 'bpf_ringbuf_reserve' because of type incompatibility
+prog_064.c,42,cannot pass map_type 27 into func bpf_task_storage_delete#157,Map 27 cannot be passed into function 'bpf_task_storage_delete' because of type incompatibility
+prog_065.c,42,cannot pass map_type 21 into func bpf_sk_storage_delete#108,Map 21 cannot be passed into function 'bpf_sk_storage_delete' because of type incompatibility
+prog_066.c,42,cannot pass map_type 24 into func bpf_map_lookup_elem#1,Map 24 cannot be passed into function 'bpf_map_lookup_elem' because of type incompatibility
+prog_067.c,42,cannot pass map_type 2 into func bpf_get_local_storage#81,Map 2 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_068.c,42,cannot pass map_type 9 into func bpf_get_local_storage#81,Map 9 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_069.c,42,cannot pass map_type 15 into func bpf_get_local_storage#81,Map 15 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_070.c,42,cannot pass map_type 27 into func bpf_get_local_storage#81,Map 27 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_071.c,42,cannot pass map_type 15 into func bpf_get_local_storage#81,Map 15 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_072.c,42,cannot pass map_type 5 into func bpf_get_local_storage#81,Map 5 cannot be passed into function 'bpf_get_local_storage' because of type incompatibility
+prog_073.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_074.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_075.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_076.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_077.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_078.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_079.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_080.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_081.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_082.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_083.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_084.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_085.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_086.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_087.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_088.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_089.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_090.c,58,R7 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_091.c,58,R6 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_092.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_093.c,34,map 'map_0' has to have BTF in order to use bpf_spin_lock,bpf_spin_lock usage requires map 'map_0' to have a type with BTF
+prog_094.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_095.c,34,map 'map_0' has to have BTF in order to use bpf_spin_lock,bpf_spin_lock usage requires map 'map_0' to have a type with BTF
+prog_096.c,84,"read from map forbidden, value_size=88 off=16 size=64",Cannot read from read only map
+prog_097.c,58,R6 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_098.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_099.c,84,"read from map forbidden, value_size=120 off=32 size=48",Cannot read from read only map
+prog_100.c,84,"read from map forbidden, value_size=120 off=104 size=4",Cannot read from read only map
+prog_101.c,84,"read from map forbidden, value_size=120 off=0 size=120",Cannot read from read only map
+prog_102.c,84,"read from map forbidden, value_size=104 off=24 size=24",Cannot read from read only map
+prog_103.c,84,"read from map forbidden, value_size=104 off=0 size=104",Cannot read from read only map
+prog_104.c,45,"write into map forbidden, value_size=128 off=0 size=128",Cannot write into map in read only program
+prog_105.c,81,tail_call would lead to reference leak,Tail call invocation before releasing reference leads to reference leak
+prog_106.c,58,R6 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_107.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [1, 1]",The return value may contains values equal to 3
+prog_108.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_109.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_110.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_111.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_112.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_113.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_114.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_115.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_116.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_117.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_118.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_119.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_120.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_121.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_122.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_123.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_124.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_125.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_126.c,44,"At program exit the register R0 has smin=3 smax=3 should have been in [0, 1]",The return value may contains values equal to 3
+prog_127.c,44,"At program exit the register R0 has smin=2 smax=2 should have been in [0, 1]",The return value may contains values equal to 2
+prog_128.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_129.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_130.c,58,R3 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_131.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_132.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_133.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_134.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_135.c,58,R7 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_136.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_137.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_138.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_139.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_140.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_141.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_142.c,45,"write into map forbidden, value_size=8 off=0 size=4",Cannot write into map in read only program
+prog_143.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_144.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable ''
+prog_145.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_146.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_147.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_148.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_149.c,45,"write into map forbidden, value_size=8 off=0 size=4",Cannot write into map in read only program
+prog_150.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_151.c,58,R0 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_152.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_153.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_154.c,58,R2 32-bit pointer arithmetic prohibited,32-bit ALU operations on pointers produce (meaningless) scalars
+prog_155.c,84,"read from map forbidden, value_size=80 off=76 size=42",Cannot read from read only map
+prog_156.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_157.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_158.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_159.c,34,map 'map_0' has to have BTF in order to use bpf_spin_lock,bpf_spin_lock usage requires map 'map_0' to have a type with BTF
+prog_160.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_161.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_162.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_163.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_164.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_165.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_166.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_167.c,84,"read from map forbidden, value_size=96 off=8 size=80",Cannot read from read only map
+prog_168.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_169.c,34,map 'map_0' has to have BTF in order to use bpf_spin_lock,bpf_spin_lock usage requires map 'map_0' to have a type with BTF
+prog_170.c,10,R2 min value is outside of the allowed memory range,Invalid access to map value
+prog_171.c,34,map 'map_0' has to have BTF in order to use bpf_spin_lock,bpf_spin_lock usage requires map 'map_0' to have a type with BTF
+prog_172.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_173.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_174.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_175.c,84,"read from map forbidden, value_size=8 off=0 size=4",Cannot read from read only map
+prog_176.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_177.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_178.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_179.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_180.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_181.c,10,R2 min value is outside of the allowed memory range,Invalid access to map value
+prog_182.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_183.c,34,map 'map_1' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_1' to have a type with BTF
+prog_184.c,59,"R6 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_185.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_186.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_187.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_188.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_189.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_190.c,10,R4 min value is outside of the allowed memory range,Invalid access to map value
+prog_191.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_192.c,10,R1 min value is outside of the allowed memory range,Invalid access to map value
+prog_193.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_194.c,10,R2 min value is outside of the allowed memory range,Invalid access to map value
+prog_195.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_196.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_197.c,34,map 'map_0' has to have BTF in order to use bpf_timer,bpf_timer usage requires map 'map_0' to have a type with BTF
+prog_198.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_199.c,45,"write into map forbidden, value_size=64 off=24 size=36",Cannot write into map in read only program
+prog_200.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_201.c,84,"read from map forbidden, value_size=32 off=24 size=4",Cannot read from read only map
+prog_202.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_203.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_204.c,45,write into map forbidden,Cannot write into map in read only program
+prog_205.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_206.c,81,tail_call would lead to reference leak,Tail call invocation before releasing reference leads to reference leak
+prog_207.c,84,"read from map forbidden, value_size=8 off=0 size=4",Cannot read from read only map
+prog_208.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_209.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_210.c,84,"read from map forbidden, value_size=32 off=16 size=39",Cannot read from read only map
+prog_211.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_212.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_213.c,81,tail_call would lead to reference leak,Tail call invocation before releasing reference leads to reference leak
+prog_214.c,84,"read from map forbidden, value_size=8 off=0 size=4",Cannot read from read only map
+prog_215.c,84,"read from map forbidden, value_size=56 off=24 size=8",Cannot read from read only map
+prog_216.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_217.c,84,"read from map forbidden, value_size=72 off=32 size=16",Cannot read from read only map
+prog_218.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_219.c,85,"Sleepable programs can only use array, hash, ringbuf and local storage maps","Sleepable programs can only use array, hash, ringbuf and local storage maps"
+prog_220.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_221.c,84,"read from map forbidden, value_size=128 off=24 size=96",Cannot read from read only map
+prog_222.c,84,"read from map forbidden, value_size=120 off=96 size=16",Cannot read from read only map
+prog_223.c,84,"read from map forbidden, value_size=104 off=0 size=4",Cannot read from read only map
+prog_224.c,84,"read from map forbidden, value_size=32 off=16 size=8",Cannot read from read only map
+prog_225.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_226.c,84,"read from map forbidden, value_size=112 off=96 size=4",Cannot read from read only map
+prog_227.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_228.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_229.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_230.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_231.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_232.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_233.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_234.c,84,"read from map forbidden, value_size=8 off=0 size=8",Cannot read from read only map
+prog_235.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_236.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_237.c,45,write into map forbidden,Cannot write into map in read only program
+prog_238.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_239.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_240.c,81,tail_call would lead to reference leak,Tail call invocation before releasing reference leads to reference leak
+prog_241.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_242.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_243.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_244.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_245.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_246.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_247.c,45,"write into map forbidden, value_size=8 off=0 size=41",Cannot write into map in read only program
+prog_248.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_249.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_250.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v3'
+prog_251.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_252.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_253.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_254.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_255.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_256.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_257.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_258.c,45,"write into map forbidden, value_size=8 off=0 size=3",Cannot write into map in read only program
+prog_259.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_260.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_261.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_262.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_263.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_264.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_265.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_266.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_267.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_268.c,78,invalid size of register spill,Invalid size of register saved in the stack
+prog_269.c,47,unknown func bpf_getsockopt#57,Unknown function bpf_getsockopt
+prog_270.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_271.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_272.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_273.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_274.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v4'
+prog_275.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_276.c,88,"R2 invalid zero-sized read: u64=[0,3]",Helper function parameter 2 might be zero
+prog_277.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_278.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_279.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_280.c,32,"R5 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_281.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_282.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_283.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_284.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_285.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_286.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_287.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_288.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_289.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_290.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_291.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_292.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_293.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_294.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_295.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_296.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_297.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_298.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_299.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_300.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_301.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_302.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_303.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_304.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_305.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_306.c,45,"write into map forbidden, value_size=96 off=8 size=38",Cannot write into map in read only program
+prog_307.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_308.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_309.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_310.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_311.c,59,"R0 pointer arithmetic on map_value_or_null prohibited, null-check it first",Pointer arithmetic on pointer to map element value not null-checked prohibited on possibly null type
+prog_312.c,88,"R4 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 4 might be zero
+prog_313.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_314.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_315.c,86,func bpf_get_func_ip#173 supported only for fentry/fexit/fmod_ret programs,Function bpf_get_func_ip is supported only for fentry/fexit programs
+prog_316.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_317.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_318.c,45,"write into map forbidden, value_size=56 off=8 size=54",Cannot write into map in read only program
+prog_319.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v2'
+prog_320.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_321.c,45,"write into map forbidden, value_size=120 off=32 size=64",Cannot write into map in read only program
+prog_322.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_323.c,47,unknown func bpf_getsockopt#57,Unknown function bpf_getsockopt
+prog_324.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable 'v1'
+prog_325.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_326.c,88,"R4 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 4 might be zero
+prog_327.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_328.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_329.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_330.c,78,invalid size of register spill,Invalid size of register saved in the stack
+prog_331.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_332.c,45,"write into map forbidden, value_size=56 off=0 size=28",Cannot write into map in read only program
+prog_333.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_334.c,45,"write into map forbidden, value_size=80 off=76 size=48",Cannot write into map in read only program
+prog_335.c,45,"write into map forbidden, value_size=128 off=0 size=128",Cannot write into map in read only program
+prog_336.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_337.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_338.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_339.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_340.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_341.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_342.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_343.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_344.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_345.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_346.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_347.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_348.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_349.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_350.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_351.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_352.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_353.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_354.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_355.c,88,"R3 invalid zero-sized read: u64=[0,3]",Helper function parameter 3 might be zero
+prog_356.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_357.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_358.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_359.c,32,"R5 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_360.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_361.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_362.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_363.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_364.c,88,"R2 invalid zero-sized read: u64=[0,3]",Helper function parameter 2 might be zero
+prog_365.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_366.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_367.c,88,"R5 invalid zero-sized read: u64=[0,0]",Helper function parameter 5 might be zero
+prog_368.c,47,unknown func bpf_getsockopt#57,Unknown function bpf_getsockopt
+prog_369.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_370.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_371.c,90,only one cgroup storage of each type is allowed,Too many cgroup storage maps used
+prog_372.c,88,"R2 invalid zero-sized read: u64=[0,11]",Helper function parameter 2 might be zero
+prog_373.c,88,"R2 invalid zero-sized read: u64=[0,20]",Helper function parameter 2 might be zero
+prog_374.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_375.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_376.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_377.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_378.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_379.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_380.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_381.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_382.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_383.c,45,write into map forbidden,Cannot write into map in read only program
+prog_384.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_385.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_386.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_387.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_388.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_389.c,45,write into map forbidden,Cannot write into map in read only program
+prog_390.c,88,"R2 invalid zero-sized read: u64=[0,0]",Helper function parameter 2 might be zero
+prog_391.c,88,"R2 invalid zero-sized read: u64=[0,3]",Helper function parameter 2 might be zero
+prog_392.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_393.c,45,"write into map forbidden, value_size=96 off=24 size=56",Cannot write into map in read only program
+prog_394.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_395.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_396.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_397.c,45,"write into map forbidden, value_size=8 off=0 size=58",Cannot write into map in read only program
+prog_398.c,88,"R4 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 4 might be zero
+prog_399.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_400.c,45,"write into map forbidden, value_size=8 off=0 size=4",Cannot write into map in read only program
+prog_401.c,47,unknown func bpf_setsockopt#49,Unknown function bpf_setsockopt
+prog_402.c,45,"write into map forbidden, value_size=8 off=0 size=8",Cannot write into map in read only program
+prog_403.c,45,write into map forbidden,Cannot write into map in read only program
+prog_404.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_405.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_406.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_407.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_408.c,32,"R5 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_409.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_410.c,88,"R4 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 4 might be zero
+prog_411.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_412.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_413.c,88,"R3 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 3 might be zero
+prog_414.c,32,"R5 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_415.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_416.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_417.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_418.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_419.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_420.c,88,"R5 invalid zero-sized read: u64=[0,0]",Helper function parameter 5 might be zero
+prog_421.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_422.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_423.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_424.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_425.c,32,"R2 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_426.c,88,"R5 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 5 might be zero
+prog_427.c,87,helper call might sleep in a non-sleepable prog,Helper function might sleep in a non-sleepable prog
+prog_428.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_429.c,32,"R2 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_430.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_431.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_432.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_433.c,88,"R4 invalid zero-sized read: u64=[0,3]",Helper function parameter 4 might be zero
+prog_434.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_435.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_436.c,-1,verifier internal error: more than one arg with ref_obj_id R3 4 2,Error not managed -> verifier internal 
+prog_437.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_438.c,81,tail_call would lead to reference leak,Tail call invocation before releasing reference leads to reference leak
+prog_439.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_440.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_441.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_442.c,47,unknown func bpf_bind#64,Unknown function bpf_bind
+prog_443.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_444.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_445.c,88,"R5 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 5 might be zero
+prog_446.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_447.c,88,"R5 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 5 might be zero
+prog_448.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_449.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_450.c,88,"R2 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 2 might be zero
+prog_451.c,32,"R5 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_452.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_453.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_454.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_455.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_456.c,88,"R4 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 4 might be zero
+prog_457.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_458.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_459.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_460.c,89,invalid arg_type for sockmap/sockhash,Incompatible helper function for SOCKMAP/SOCKHASH
+prog_461.c,32,"R3 min value is negative, either use unsigned or 'var &= const'",Minimum possible value is not allowed to be negative
+prog_462.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_463.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_464.c,-1,libbpf: prog 'func': -- BEGIN PROG LOAD LOG --,Error not managed -> libbpf: prog 'func': -- BEGIN PROG LOAD LOG --
+prog_465.c,88,"R3 invalid zero-sized read: u64=[0,40]",Helper function parameter 3 might be zero
+prog_466.c,83,kernel subsystem misconfigured verifier,Map configuration error
+prog_467.c,88,"R5 invalid zero-sized read: u64=[0,4294967295]",Helper function parameter 5 might be zero
+prog_468.c,33,"R2 unbounded memory access, use 'var &= const' or 'if (var < const)'",Unbounded memory access of the variable ''
+prog_469.c,88,"R5 invalid zero-sized read: u64=[0,0]",Helper function parameter 5 might be zero

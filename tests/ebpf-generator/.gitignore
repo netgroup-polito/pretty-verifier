@@ -1,0 +1,4 @@
+/workdir/
+/.idea/
+vm-bpf-generator.pid
+/vm-bpf-generator-dir

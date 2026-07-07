@@ -1,0 +1,24 @@
+#include "vmlinux.h"
+#include <bpf/bpf_helpers.h>
+
+struct {
+    __uint(type, BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE);
+    __uint(map_flags, 0 | BPF_F_NUMA_NODE);
+    __uint(max_entries, 0);
+    __type(key, uint64_t);
+    __type(value, uint64_t);
+} map_0 SEC(".maps");
+
+SEC("cgroup/getsockname4")
+int func(struct bpf_sock_addr *ctx) {
+	uint64_t* v0 = 0;
+	v0 = bpf_get_local_storage(&map_0, 0);
+	int64_t v1 = 7;
+	uint64_t v2 = 0;
+	if (v0 && (v1 != -89 && (v1 & 0x8000000000000000UL != 0)) && v1 >= -35) { //offset=-35
+		v2 = bpf_bind(ctx, v0, v1);
+	}
+	return 3;
+}
+
+char _license[] SEC("license") = "GPL";
