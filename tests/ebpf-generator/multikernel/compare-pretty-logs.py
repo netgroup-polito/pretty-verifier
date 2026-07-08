@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Compare host and Buildroot guest Pretty Verifier logs."""
+"""Compare host and multikernel guest Pretty Verifier logs."""
 
 from __future__ import annotations
 
 import argparse
 import csv
 import json
+import os
 import re
 import subprocess
 import sys
@@ -41,12 +42,15 @@ def safe_name(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip("-")
 
 
-def resolve_repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+def resolve_layout() -> tuple[Path, Path, Path]:
+    script_dir = Path(__file__).resolve().parent
+    ebpf_generator_dir = script_dir.parent
+    pretty_verifier_root = script_dir.parents[2]
+    return script_dir, ebpf_generator_dir, pretty_verifier_root
 
 
-def resolve_instance(repo_root: Path, value: str | None) -> tuple[str, Path]:
-    instances_dir = repo_root / "buildroot" / "instances"
+def resolve_instance(multikernel_dir: Path, value: str | None) -> tuple[str, Path]:
+    instances_dir = multikernel_dir / "instances"
     if value:
         exact = instances_dir / value
         if (exact / "shared" / "bpf").is_dir():
@@ -60,16 +64,16 @@ def resolve_instance(repo_root: Path, value: str | None) -> tuple[str, Path]:
             return matches[0].name, matches[0]
         if len(matches) > 1:
             names = "\n".join(f"  {path.name}" for path in matches)
-            raise SystemExit(f"More than one Buildroot instance matches {value!r}. Pass one explicitly:\n{names}")
-        raise SystemExit(f"Could not find Buildroot instance for {value!r} under {instances_dir}")
+            raise SystemExit(f"More than one multikernel instance matches {value!r}. Pass one explicitly:\n{names}")
+        raise SystemExit(f"Could not find multikernel instance for {value!r} under {instances_dir}")
 
     matches = sorted(path for path in instances_dir.glob("linux-*") if (path / "shared" / "bpf").is_dir())
     if len(matches) == 1:
         return matches[0].name, matches[0]
     if not matches:
-        raise SystemExit(f"No Buildroot instances found under {instances_dir}")
+        raise SystemExit(f"No multikernel instances found under {instances_dir}")
     names = "\n".join(f"  {path.name}" for path in matches)
-    raise SystemExit(f"More than one Buildroot instance exists. Pass one explicitly:\n{names}")
+    raise SystemExit(f"More than one multikernel instance exists. Pass one explicitly:\n{names}")
 
 
 def output_to_source_name(output_name: str) -> str:
@@ -192,9 +196,13 @@ def run_pretty_verifier(
     if not obj.exists():
         return output_path.read_text(encoding="utf-8", errors="replace"), f"missing bytecode {obj.name}"
 
+    env = os.environ.copy()
+    module_path = pretty_verifier_dir / "src"
+    env["PYTHONPATH"] = str(module_path) + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
     cmd = [
         sys.executable,
-        str(pretty_verifier_dir / "pretty_verifier.py"),
+        "-m",
+        "pretty_verifier.main",
         "-l",
         str(output_path),
         "-c",
@@ -204,7 +212,7 @@ def run_pretty_verifier(
         "-n",
     ]
     try:
-        result = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout, check=False)
+        result = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout, check=False, env=env)
     except subprocess.TimeoutExpired:
         return output_path.read_text(encoding="utf-8", errors="replace"), "pretty timeout"
 
@@ -532,13 +540,13 @@ def discover_output_names(
 
 
 def main() -> int:
-    repo_root = resolve_repo_root()
-    parser = argparse.ArgumentParser(description="Compare host and Buildroot Pretty Verifier outputs.")
+    multikernel_dir, ebpf_generator_dir, pretty_verifier_root = resolve_layout()
+    parser = argparse.ArgumentParser(description="Compare host and multikernel Pretty Verifier outputs.")
     parser.add_argument("kernel", nargs="?", help="Kernel instance, e.g. 6.18, 6.18.36, or linux-6.18.36")
-    parser.add_argument("--host-dir", type=Path, default=repo_root / "fuzzed-tests")
-    parser.add_argument("--instance-dir", type=Path, help="Explicit Buildroot instance directory")
-    parser.add_argument("--pretty-verifier-dir", type=Path, default=repo_root / "pretty-verifier")
-    parser.add_argument("--output-dir", type=Path, default=repo_root / "buildroot" / "reports")
+    parser.add_argument("--host-dir", type=Path, default=ebpf_generator_dir / "fuzzed-tests")
+    parser.add_argument("--instance-dir", type=Path, help="Explicit multikernel instance directory")
+    parser.add_argument("--pretty-verifier-dir", type=Path, default=pretty_verifier_root)
+    parser.add_argument("--output-dir", type=Path, default=multikernel_dir / "reports")
     parser.add_argument("--limit", type=int, help="Only process the first N outputs")
     parser.add_argument("--differences-only", action="store_true", help="Only include rows with at least one metric difference")
     parser.add_argument("--force-pretty", action="store_true", help="Regenerate Pretty Verifier logs even if already present")
@@ -549,7 +557,7 @@ def main() -> int:
         instance_dir = args.instance_dir.resolve()
         instance_name = instance_dir.name
     else:
-        instance_name, instance_dir = resolve_instance(repo_root, args.kernel)
+        instance_name, instance_dir = resolve_instance(multikernel_dir, args.kernel)
 
     host_dir = args.host_dir.resolve()
     kernel_dir = instance_dir / "shared" / "bpf"
@@ -558,8 +566,8 @@ def main() -> int:
         raise SystemExit(f"host dir not found: {host_dir}")
     if not kernel_dir.is_dir():
         raise SystemExit(f"kernel shared bpf dir not found: {kernel_dir}")
-    if not (pretty_dir / "pretty_verifier.py").is_file():
-        raise SystemExit(f"pretty_verifier.py not found under {pretty_dir}")
+    if not (pretty_dir / "src" / "pretty_verifier" / "main.py").is_file():
+        raise SystemExit(f"pretty_verifier package not found under {pretty_dir}")
 
     report_dir = (args.output_dir / instance_name).resolve()
     host_log_dir = report_dir / "pretty-logs" / "host"

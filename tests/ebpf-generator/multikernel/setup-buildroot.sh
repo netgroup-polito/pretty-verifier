@@ -2,7 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+EBPF_GENERATOR_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PRETTY_VERIFIER_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 CACHE_DIR="$SCRIPT_DIR/cache"
 DOWNLOAD_DIR="$CACHE_DIR/downloads"
 SOURCE_CACHE_DIR="$CACHE_DIR/sources"
@@ -39,21 +40,21 @@ include_pretty=1
 list_kernels=0
 
 log() {
-    printf '[buildroot-ebpf] %s\n' "$*"
+    printf '[multikernel] %s\n' "$*"
 }
 
 warn() {
-    printf '[buildroot-ebpf] WARNING: %s\n' "$*" >&2
+    printf '[multikernel] WARNING: %s\n' "$*" >&2
 }
 
 die() {
-    printf '[buildroot-ebpf] ERROR: %s\n' "$*" >&2
+    printf '[multikernel] ERROR: %s\n' "$*" >&2
     exit 1
 }
 
 usage() {
     cat <<'EOF'
-Usage: buildroot/setup-buildroot.sh [options]
+Usage: multikernel/setup-buildroot.sh [options]
 
 Without --kernel-version this opens a menuconfig-style picker for supported
 longterm Linux kernels. Buildroot is selected automatically.
@@ -293,24 +294,22 @@ buildroot_download_url() {
 }
 
 copy_pretty_verifier() {
-    local src="$REPO_ROOT/pretty-verifier"
+    local src="$PRETTY_VERIFIER_ROOT"
     local dest="$shared_dir/pretty-verifier"
+    local file
     if [[ "$include_pretty" -eq 0 ]]; then
         return 0
     fi
-    if [[ ! -d "$src" ]]; then
-        warn "pretty-verifier directory not found at $src"
+    if [[ ! -f "$src/src/pretty_verifier/main.py" ]]; then
+        warn "pretty-verifier package not found at $src/src/pretty_verifier"
         return 0
     fi
     rm -rf "$dest"
-    mkdir -p "$dest"
-    (
-        cd "$src"
-        tar --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' -cf - .
-    ) | (
-        cd "$dest"
-        tar -xf -
-    )
+    mkdir -p "$dest/src"
+    cp -a "$src/src/pretty_verifier" "$dest/src/"
+    for file in pyproject.toml README.md LICENSE NOTICE; do
+        [[ -f "$src/$file" ]] && cp -p "$src/$file" "$dest/"
+    done
 }
 
 write_guest_load_script() {
@@ -419,7 +418,7 @@ EOF
 }
 
 prepare_shared_dir() {
-    local src="$REPO_ROOT/fuzzed-tests"
+    local src="$EBPF_GENERATOR_DIR/fuzzed-tests"
     local excluded_tests_file="$src/excluded_tests.txt"
     local -A excluded_tests=()
     local line source_file filename
@@ -804,20 +803,22 @@ chmod +x "$TARGET_DIR/etc/init.d/S15hostshare"
 
 cat > "$TARGET_DIR/usr/local/bin/pretty-verifier" <<'PVEOF'
 #!/bin/sh
-if [ -f /mnt/host/pretty-verifier/pretty_verifier.py ]; then
-  exec python3 /mnt/host/pretty-verifier/pretty_verifier.py "$@"
+PV_ROOT=/mnt/host/pretty-verifier
+if [ -f "$PV_ROOT/src/pretty_verifier/main.py" ]; then
+  export PYTHONPATH="$PV_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+  exec python3 -m pretty_verifier.main "$@"
 fi
 echo "pretty-verifier not found in /mnt/host/pretty-verifier" >&2
 exit 127
 PVEOF
 chmod +x "$TARGET_DIR/usr/local/bin/pretty-verifier"
 
-cat > "$TARGET_DIR/usr/local/bin/run-frozen-output" <<'RUNEOF'
+cat > "$TARGET_DIR/usr/local/bin/run-fuzzed-output" <<'RUNEOF'
 #!/bin/sh
 cd /root/bpf || exit 1
 exec python3 generate_output.py "$@"
 RUNEOF
-chmod +x "$TARGET_DIR/usr/local/bin/run-frozen-output"
+chmod +x "$TARGET_DIR/usr/local/bin/run-fuzzed-output"
 
 cat > "$TARGET_DIR/etc/profile.d/ebpf.sh" <<'PROFILEEOF'
 export PATH="/usr/local/bin:$PATH"
@@ -896,7 +897,7 @@ VM_CPUS="\${VM_CPUS:-$cpus}"
 
 if [[ ! -f "\$BZIMAGE" ]]; then
     echo "Missing kernel image: \$BZIMAGE" >&2
-    echo "Run ./buildroot/run.sh build $kernel_version first." >&2
+    echo "Run ./multikernel/run.sh build $kernel_version first." >&2
     exit 1
 fi
 
@@ -1151,7 +1152,7 @@ write_host_build_script
 
 if [[ "$no_build" -eq 1 ]]; then
     log "Prepared instance without building: $instance_dir"
-    log "Run later: ./buildroot/run.sh build $kernel_version"
+    log "Run later: ./multikernel/run.sh build $kernel_version"
 else
     build_images
 fi

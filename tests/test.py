@@ -140,10 +140,10 @@ class BPFTestCase:
     def run_command(self, directory):
     
         # command used for coverage
-        # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode ./pretty_verifier.py -c {directory}/{self.bpf_file}.bpf.c"
+        # command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /sys/fs/bpf/{self.bpf_file} 2>&1 | coverage run --parallel-mode -m pretty_verifier.main -c {directory}/{self.bpf_file}.bpf.c"
 
         command = f"sudo bpftool prog load {directory}/{self.bpf_file}.bpf.o /dev/null 2>&1 | pretty-verifier -c {directory}/{self.bpf_file}.bpf.c -o {directory}/{self.bpf_file}.bpf.o"
-        #command = f"python3 ./pretty_verifier.py -f {directory}/{self.bpf_file}.bpf.c"
+        #command = f"python3 -m pretty_verifier.main -f {directory}/{self.bpf_file}.bpf.c"
         
         try:
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)

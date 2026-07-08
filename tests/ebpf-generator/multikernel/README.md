@@ -1,4 +1,4 @@
-# Buildroot eBPF VM
+# Multikernel eBPF VM
 
 Linear workflow for testing the programs in `fuzzed-tests` on Linux LTS kernels in a Buildroot VM.
 
@@ -11,9 +11,9 @@ Supported Buildroot version: `2026.05`.
 From the repository root:
 
 ```bash
-./buildroot/run.sh build 6.18 --jobs 1
-./buildroot/run.sh compile 6.18
-./buildroot/run.sh vm 6.18
+./tests/ebpf-generator/multikernel/run.sh build 6.18 --jobs 1
+./tests/ebpf-generator/multikernel/run.sh compile 6.18
+./tests/ebpf-generator/multikernel/run.sh vm 6.18
 ```
 
 Inside the VM:
@@ -27,13 +27,13 @@ poweroff
 Then on the host:
 
 ```bash
-./buildroot/run.sh report 6.18
+./tests/ebpf-generator/multikernel/run.sh report 6.18
 ```
 
 The Excel report is saved in:
 
 ```text
-buildroot/reports/linux-<kernel>/
+tests/ebpf-generator/multikernel/reports/linux-<kernel>/
 ```
 
 The default generated report is named:
@@ -47,31 +47,31 @@ linux-<kernel>_pretty_compare_full.xlsx
 List supported LTS kernels:
 
 ```bash
-./buildroot/run.sh kernels
+./tests/ebpf-generator/multikernel/run.sh kernels
 ```
 
 Force a rebuild of the kernel/VM:
 
 ```bash
-./buildroot/run.sh build 6.18 --jobs 1 --rebuild
+./tests/ebpf-generator/multikernel/run.sh build 6.18 --jobs 1 --rebuild
 ```
 
 Start again from a clean Buildroot output, without touching sources and reports:
 
 ```bash
-./buildroot/run.sh clean 6.18
+./tests/ebpf-generator/multikernel/run.sh clean 6.18
 ```
 
 Always recompile all eBPF objects on the host:
 
 ```bash
-./buildroot/run.sh compile 6.18
+./tests/ebpf-generator/multikernel/run.sh compile 6.18
 ```
 
 Check that the kernel BTF contains `bpf_prog_active`:
 
 ```bash
-./buildroot/run.sh check 6.18
+./tests/ebpf-generator/multikernel/run.sh check 6.18
 ```
 
 The check also verifies that the BTF `DATASEC` entries do not overlap.
@@ -81,13 +81,13 @@ If it fails with `overlapping DATASEC VAR entries`, the already-built kernel is 
 Build all LTS kernels one at a time:
 
 ```bash
-./buildroot/run.sh build-all --jobs 1 --compile
+./tests/ebpf-generator/multikernel/run.sh build-all --jobs 1 --compile
 ```
 
 Clean the old Buildroot 2024.02 and the legacy instance without a suffix:
 
 ```bash
-./buildroot/run.sh clean-old
+./tests/ebpf-generator/multikernel/run.sh clean-old
 ```
 
 ## Notes
@@ -103,9 +103,9 @@ extern (var ksym) 'bpf_prog_active': not found in kernel BTF
 do not regenerate only the logs: you need to rebuild the target kernel and then recompile the objects:
 
 ```bash
-./buildroot/run.sh clean 6.18
-./buildroot/run.sh build 6.18 --jobs 1
-./buildroot/run.sh compile 6.18
+./tests/ebpf-generator/multikernel/run.sh clean 6.18
+./tests/ebpf-generator/multikernel/run.sh build 6.18 --jobs 1
+./tests/ebpf-generator/multikernel/run.sh compile 6.18
 ```
 
 Use the same fix if, inside the VM, `bpftool` immediately fails with:

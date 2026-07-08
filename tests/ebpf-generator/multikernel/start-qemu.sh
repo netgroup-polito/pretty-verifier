@@ -6,7 +6,7 @@ INSTANCES_DIR="$SCRIPT_DIR/instances"
 
 usage() {
     cat <<'EOF'
-Usage: buildroot/start-qemu.sh [kernel-version|instance-name] [-- extra qemu args...]
+Usage: multikernel/start-qemu.sh [kernel-version|instance-name] [-- extra qemu args...]
 
 If no version is provided and exactly one instance exists, that instance is
 started. Otherwise the available instances are listed. Kernel versions can be
@@ -21,7 +21,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 if [[ ! -d "$INSTANCES_DIR" ]]; then
-    echo "No Buildroot eBPF instances found. Run ./buildroot/setup-buildroot.sh first." >&2
+    echo "No multikernel instances found. Run ./multikernel/setup-buildroot.sh first." >&2
     exit 1
 fi
 
@@ -85,20 +85,20 @@ if [[ -z "$version" || "$version" == --* ]]; then
         exec "${scripts[0]}" "$@"
     fi
     if [[ "${#scripts[@]}" -eq 0 ]]; then
-        echo "No Buildroot eBPF instances found. Run ./buildroot/setup-buildroot.sh first." >&2
+        echo "No multikernel instances found. Run ./multikernel/setup-buildroot.sh first." >&2
         exit 1
     fi
-    echo "Available Buildroot eBPF instances:" >&2
+    echo "Available multikernel instances:" >&2
     for script in "${scripts[@]}"; do
         echo "  $(basename "$(dirname "$script")")" >&2
     done
-    echo "Run: ./buildroot/start-qemu.sh <kernel-version>" >&2
+    echo "Run: ./multikernel/start-qemu.sh <kernel-version>" >&2
     exit 1
 fi
 
 if ! instance_script="$(resolve_instance_script "$version")"; then
     echo "Instance '$version' does not have an executable start-qemu.sh." >&2
-    echo "Run ./buildroot/setup-buildroot.sh --kernel-version $version first." >&2
+    echo "Run ./multikernel/setup-buildroot.sh --kernel-version $version first." >&2
     exit 1
 fi
 

@@ -2,21 +2,21 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+EBPF_GENERATOR_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 usage() {
     cat <<'EOF'
 Usage:
-  ./buildroot/run.sh kernels
-  ./buildroot/run.sh build <kernel> [--jobs N] [--rebuild]
-  ./buildroot/run.sh compile <kernel> [--jobs N]
-  ./buildroot/run.sh vm <kernel>
-  ./buildroot/run.sh report <kernel>
-  ./buildroot/run.sh check <kernel>
-  ./buildroot/run.sh features <kernel>
-  ./buildroot/run.sh clean <kernel>
-  ./buildroot/run.sh build-all [--jobs N] [--compile]
-  ./buildroot/run.sh clean-old
+  ./multikernel/run.sh kernels
+  ./multikernel/run.sh build <kernel> [--jobs N] [--rebuild]
+  ./multikernel/run.sh compile <kernel> [--jobs N]
+  ./multikernel/run.sh vm <kernel>
+  ./multikernel/run.sh report <kernel>
+  ./multikernel/run.sh check <kernel>
+  ./multikernel/run.sh features <kernel>
+  ./multikernel/run.sh clean <kernel>
+  ./multikernel/run.sh build-all [--jobs N] [--compile]
+  ./multikernel/run.sh clean-old
 
 Workflow:
   build   -> compile -> vm -> generate logs inside VM -> report
@@ -26,12 +26,12 @@ EOF
 }
 
 die() {
-    printf '[buildroot-ebpf] ERROR: %s\n' "$*" >&2
+    printf '[multikernel] ERROR: %s\n' "$*" >&2
     exit 1
 }
 
 log() {
-    printf '[buildroot-ebpf] %s\n' "$*"
+    printf '[multikernel] %s\n' "$*"
 }
 
 need_value() {
@@ -107,7 +107,7 @@ cmd_kernels() {
 
 cmd_build() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "build requires a kernel, e.g. ./buildroot/run.sh build 6.18"
+    [[ -n "$kernel" ]] || die "build requires a kernel, e.g. ./multikernel/run.sh build 6.18"
     shift || true
     parse_jobs_and_rebuild "$@"
 
@@ -120,42 +120,42 @@ cmd_build() {
         args+=(--rebuild)
     fi
 
-    (cd "$REPO_ROOT" && "${args[@]}")
+    (cd "$EBPF_GENERATOR_DIR" && "${args[@]}")
 }
 
 cmd_compile() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "compile requires a kernel, e.g. ./buildroot/run.sh compile 6.18"
+    [[ -n "$kernel" ]] || die "compile requires a kernel, e.g. ./multikernel/run.sh compile 6.18"
     shift || true
     parse_jobs_and_rebuild "$@"
 
     local instance_dir
     instance_dir="$(instance_dir_for "$kernel")"
-    [[ -x "$instance_dir/build-bpf-host.sh" ]] || die "Missing instance. Run: ./buildroot/run.sh build $kernel"
+    [[ -x "$instance_dir/build-bpf-host.sh" ]] || die "Missing instance. Run: ./multikernel/run.sh build $kernel"
 
-    (cd "$REPO_ROOT" && "$instance_dir/build-bpf-host.sh" -B "-j${JOBS:-$(host_jobs)}")
+    (cd "$EBPF_GENERATOR_DIR" && "$instance_dir/build-bpf-host.sh" -B "-j${JOBS:-$(host_jobs)}")
 }
 
 cmd_vm() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "vm requires a kernel, e.g. ./buildroot/run.sh vm 6.18"
+    [[ -n "$kernel" ]] || die "vm requires a kernel, e.g. ./multikernel/run.sh vm 6.18"
     local instance_dir
     instance_dir="$(instance_dir_for "$kernel")"
-    [[ -x "$instance_dir/start-qemu.sh" ]] || die "Missing instance. Run: ./buildroot/run.sh build $kernel"
+    [[ -x "$instance_dir/start-qemu.sh" ]] || die "Missing instance. Run: ./multikernel/run.sh build $kernel"
     exec "$instance_dir/start-qemu.sh"
 }
 
 cmd_report() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "report requires a kernel, e.g. ./buildroot/run.sh report 6.18"
+    [[ -n "$kernel" ]] || die "report requires a kernel, e.g. ./multikernel/run.sh report 6.18"
     local instance
     instance="$(instance_name_for "$kernel")"
-    (cd "$REPO_ROOT" && "$SCRIPT_DIR/compare-pretty-logs.py" "$instance")
+    (cd "$EBPF_GENERATOR_DIR" && "$SCRIPT_DIR/compare-pretty-logs.py" "$instance")
 }
 
 cmd_check() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "check requires a kernel, e.g. ./buildroot/run.sh check 6.18"
+    [[ -n "$kernel" ]] || die "check requires a kernel, e.g. ./multikernel/run.sh check 6.18"
     local instance_dir vmlinux status overlap_status overlap_msg overlap_hint pahole_src
     instance_dir="$(instance_dir_for "$kernel")"
     vmlinux="$instance_dir/output/build/linux-$(kernel_exact_version "$kernel")/vmlinux"
@@ -170,7 +170,7 @@ cmd_check() {
     if [[ "$status" -eq 0 ]]; then
         log "kernel BTF contains VAR 'bpf_prog_active'"
     else
-        die "kernel BTF misses VAR 'bpf_prog_active'; run: ./buildroot/run.sh build $kernel --jobs 1"
+        die "kernel BTF misses VAR 'bpf_prog_active'; run: ./multikernel/run.sh build $kernel --jobs 1"
     fi
 
     set +e +o pipefail
@@ -212,11 +212,11 @@ cmd_check() {
     if [[ "$overlap_status" -eq 0 ]]; then
         log "kernel BTF DATASEC entries are non-overlapping"
     else
-        overlap_hint="Rebuild with: ./buildroot/run.sh clean $kernel && ./buildroot/run.sh build $kernel --jobs 1"
+        overlap_hint="Rebuild with: ./multikernel/run.sh clean $kernel && ./multikernel/run.sh build $kernel --jobs 1"
         pahole_src="$(find "$instance_dir/output/build" -maxdepth 1 -type d -name 'host-pahole-*' 2>/dev/null | sort | tail -n 1)"
         if [[ -n "$pahole_src" && -f "$pahole_src/btf_encoder.c" ]] &&
             ! grep -q 'Skipping overlapping BTF DATASEC' "$pahole_src/btf_encoder.c"; then
-            overlap_hint="The current output was built with host-pahole without the DATASEC overlap filter. Run: ./buildroot/run.sh clean $kernel && ./buildroot/run.sh build $kernel --jobs 1"
+            overlap_hint="The current output was built with host-pahole without the DATASEC overlap filter. Run: ./multikernel/run.sh clean $kernel && ./multikernel/run.sh build $kernel --jobs 1"
         fi
         die "kernel BTF has overlapping DATASEC VAR entries; first hit: ${overlap_msg:-unknown}. $overlap_hint"
     fi
@@ -224,7 +224,7 @@ cmd_check() {
 
 cmd_features() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "features requires a kernel, e.g. ./buildroot/run.sh features 6.18"
+    [[ -n "$kernel" ]] || die "features requires a kernel, e.g. ./multikernel/run.sh features 6.18"
     local instance_dir config bpf_dir missing=0
     instance_dir="$(instance_dir_for "$kernel")"
     config="$instance_dir/output/build/linux-$(kernel_exact_version "$kernel")/.config"
@@ -235,7 +235,7 @@ cmd_features() {
     require_config() {
         local symbol="$1"
         if ! grep -q "^${symbol}=y$" "$config"; then
-            printf '[buildroot-ebpf] missing %s\n' "$symbol" >&2
+            printf '[multikernel] missing %s\n' "$symbol" >&2
             missing=1
         fi
     }
@@ -267,13 +267,13 @@ cmd_features() {
     if [[ "$missing" -eq 0 ]]; then
         log "kernel config covers the BPF section families used by shared/bpf"
     else
-        die "kernel config is missing BPF program-type support; run: ./buildroot/run.sh clean $kernel && ./buildroot/run.sh build $kernel --jobs 1"
+        die "kernel config is missing BPF program-type support; run: ./multikernel/run.sh clean $kernel && ./multikernel/run.sh build $kernel --jobs 1"
     fi
 }
 
 cmd_clean() {
     local kernel="${1:-}"
-    [[ -n "$kernel" ]] || die "clean requires a kernel, e.g. ./buildroot/run.sh clean 6.18"
+    [[ -n "$kernel" ]] || die "clean requires a kernel, e.g. ./multikernel/run.sh clean 6.18"
     local instance_dir
     instance_dir="$(instance_dir_for "$kernel")"
     if [[ ! -d "$instance_dir" ]]; then

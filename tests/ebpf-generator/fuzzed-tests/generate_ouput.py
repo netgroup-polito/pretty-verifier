@@ -37,7 +37,7 @@ def generate_output():
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             clean_stdout = re.sub(r'\x1b\[[0-9;]*m', '', result.stdout)
-            if "in file /home/vm-admin/bpf-generator/fuzzed-tests/" in clean_stdout:
+            if re.search(rf"in file (?:.*/)?{re.escape(filename)}(?:\s|$)", clean_stdout):
                 print(f"{filename},1,0")
             else:
                 print(f"{filename},1,1")

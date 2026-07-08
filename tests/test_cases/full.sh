@@ -27,4 +27,4 @@ BPF_NAME=$1
 
 BPF_OFILE="${BPF_NAME}.o"
 
-sudo python3  ./../../../pretty-verifier/pretty_verifier.py -f "${BPF_NAME}.c"
+sudo env "PYTHONPATH=../../src${PYTHONPATH:+:$PYTHONPATH}" python3 -m pretty_verifier.main -f "${BPF_NAME}.c"
