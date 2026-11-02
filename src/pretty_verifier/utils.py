@@ -59,6 +59,54 @@ def print_error(message, location=None, suggestion=None, appendix=None):
     print(error_message)
 
 
+def get_location(line, objdump, insn, offset=0):
+    source_paths = set(re.findall(r"^; (/\S+):\d+$", objdump, re.M))
+    location = get_btf_location(line, source_paths, offset)
+    # with a single function the objdump instruction index matches the verifier's, so the caller's lookup is exact
+    if not location and len(re.findall(r"^[0-9a-f]+ <\S+>:$", objdump, re.M)) > 1:
+        location = get_source_location(line, source_paths, get_objdump_line(objdump, insn), offset)
+    return location
+
+def get_objdump_line(objdump, insn):
+    found = False
+    for l in reversed(objdump.split('\n')):
+        l = l.strip()
+        if not found and l.startswith(f"{insn}:"):
+            found = True
+        if found and l.startswith(';'):
+            path, n_line = l[2:].rsplit(':', 1)
+            return path, int(n_line)
+
+def get_btf_location(line, source_paths, offset=0):
+    btf_location = re.search(r" @ (\S+):(\d+)\s*$", line)
+    if not btf_location:
+        return None
+    filename = btf_location.group(1)
+    for path in source_paths:
+        if path == filename or path.endswith('/'+filename):
+            filename = path
+            break
+    if offset != 0:
+        filename = filename[:-9]+'c'
+    return f";{int(btf_location.group(2))+offset}{line[:btf_location.start()]} in file {filename}"
+
+def get_source_location(line, source_paths, objdump_line, offset=0):
+    code = line[1:].strip()
+    matches = []
+    for path in sorted(source_paths):
+        try:
+            with open(path) as source:
+                matches += [(path, n) for n, l in enumerate(source, 1) if l.strip() == code]
+        except OSError:
+            pass
+    if not matches:
+        return None
+    # on duplicates prefer the objdump line when it is one of them, it is surely wrong otherwise
+    filename, n_line = objdump_line if objdump_line in matches else matches[0]
+    if offset != 0:
+        filename = filename[:-9]+'c'
+    return f";{n_line+offset}{line} in file {filename}"
+
 def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
     command = f"llvm-objdump --disassemble -l {obj_file}"
     output = []
@@ -80,6 +128,11 @@ def add_line_number(output_raw, obj_file, offset=0, insn_start=None):
                 insn_num = last_number_pattern.group(1)
         else:
             if o.startswith(';'):
+                location = get_location(o, objdump.stdout, insn_num, offset)
+                if location:
+                    new_line = location
+                    old_line = n
+                    break
                 found = False
                 for ob in reversed(objdump.stdout.split('\n')):
                     if not found and ob.strip().startswith(f"{insn_num}:"):
@@ -114,6 +167,9 @@ def get_line_number_loop(output_raw, obj_file, insn):
     for o in output_raw:
         if o.startswith("; "):
             line = o
+    location = get_location(line, objdump.stdout, insn)
+    if location:
+        return location
     for o in reversed(objdump.stdout.split('\n')):
         l = o.strip()
         if l.startswith(f"{insn}"):
