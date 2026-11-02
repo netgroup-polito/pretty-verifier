@@ -28,6 +28,8 @@ def process_input(c_source_files, bytecode_file, output, llvm_objdump=None):
     for line in output:
         line = line.strip()
         print(line)
+        if line.startswith(("verification time ", "stack depth ")):
+            continue
         verifier_log.append(line)
         if not processsing and line.startswith("0: "):
             processsing = True
